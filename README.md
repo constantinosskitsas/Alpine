@@ -22,12 +22,22 @@ is more efficient and consistently surpasses state-of-the-art graph
 alignment methods using dummy nodes, in both accuracy and
 edge-disagreements, across all benchmark datasets.
 
+## Execution
+The code is written in Python
 
-## Required Libraries
+### Required Libraries
 numpy, torch, scipy, networkx, matplotlib, tqdm, scikit-learn, pandas
 
 ### How to run experiments :
 ```shell
 python PartialTest.py #: This will run Size Ratio Experiment (Figure 2)
 python NoiseTest.py #: This will run Noise Experiment (Figure 3)
+```
+
+## Reference
+
+Please cite our work in your publications if it helps your research:
+
+```
+Paper under submission
 ```
