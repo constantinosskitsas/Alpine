@@ -28,8 +28,8 @@ from aa import generate_new_id,create_new_folder,get_max_previous_id
 #FUSBAL SPECTRU
 #FUGAL SPECTRUM
 
-os.environ["MKL_NUM_THREADS"] = "2"
-torch.set_num_threads(2)
+os.environ["MKL_NUM_THREADS"] = "20"
+torch.set_num_threads(20)
 
 plotall = False
 
@@ -37,8 +37,8 @@ folderall = 'data3_'
 
 #foldernames = ['arenas', 'netscience', 'multimanga', 'highschool', 'voles']
 #n_G = [1133, 379, 1004, 327, 712]
-foldernames = [ 'netscience']
-n_G = [ 379]
+foldernames = [ 'arenas']
+n_G = [ 1133]
 iters = 10
 percs = [(i+1)/10 for i in range(2,4)]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff):

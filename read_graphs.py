@@ -90,6 +90,8 @@ def generate_data(foldernames, n_G, iters, percs,alg):
                     dfs_traversal_G=dfs(G,n_Q)
                 elif(alg=="RW"):
                     dfs_traversal_G=random_walk_(G,n_Q)
+                elif(alg=="AS"):
+                    dfs_traversal_G= list(G.nodes())
                 else: return
                 random.shuffle(dfs_traversal_G)
                 map_id_to_index = {}
@@ -181,7 +183,7 @@ n_G = [1133, 453, 379, 1004, 327, 712]
 #foldernames = ['cit-DBLP']
 #n_G = [12591]
 iters = 50
-percs = [(i+1)/10 for i in range(0,9)]
+percs = [(i+1)/10 for i in range(9,10)]
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
-generate_data_noise(foldernames, n_G, iters, percs,"RW")
-#generate_data(foldernames, n_G, iters, percs,"RW")
+#generate_data_noise(foldernames, n_G, iters, percs,"RW")
+generate_data(foldernames, n_G, iters, percs,"AS")

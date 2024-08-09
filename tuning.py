@@ -16,6 +16,7 @@ from conealign import coneGAM
 from sgwl import SGWLSA
 from grampa import Grampa
 from REGAL.regal import Regal
+from MDS import MDSGA
 #git push -f origin main
 
 #QAP
@@ -41,12 +42,12 @@ folderall = 'data3_'
 
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
-#foldernames = ['arenas']
+#foldernames = ['netscience']
 #n_G=[379]
 n_G = [ 1133,379, 1004, 327, 712]
 #n_G = [1133]
-iters =2
-percs = [(i+1)/10 for i in range(0,9)]
+iters =50
+percs = [(i+1)/10 for i in range(0,10)]
 #percs =[0.5]
 #percs = [0.2]
 #tun = [1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1]
@@ -57,14 +58,15 @@ percs = [(i+1)/10 for i in range(0,9)]
 #tun=[1,2,3,4]
 #tun=[1,2,3,4,5,6,7]
 #tun=[1,3,4,5,6]
-tun=[1,2,3,4,5,6]
-tun=[1,7]
+#tun=[2,3,4,5,6]
+tun=[8]
 #tuns=["NO_FUGAL","FUGAL","FUGALX1_5","FUGALX2","FUGALM"]
 #tuns=["FunPGA","cone","SGWL","fugal","Grampa","Regal","FunPGA_D"]
 #tuns=["FunPGA","FunPGA_D"]
 #tuns=["FunPGA","SGWL","fugal","Grampa","Regal"]
-#tuns=["FunPGA","Cone","SGWL","fugal","Grampa","Regal"]
-tuns=["fugal","FunPGA_D"]
+#tuns=["Cone","SGWL","fugal","Grampa","Regal"]
+tuns=["MDS"]
+#tuns=["fugal","FunPGA_D"]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 #nL=[]
 #tuns=["Cone"]
@@ -161,6 +163,9 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==7):
                         print("FUNPGA_D")
                         _, list_of_nodes, forb_norm = algo_fusbal(G_Q.copy(), G.copy(),mu=1,weight=2)        
+                    elif(tun[ptun]==8):
+                        print("MDS")
+                        _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
                     else:
                         print("Error")
                         exit()
