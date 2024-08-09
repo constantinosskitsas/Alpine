@@ -25,3 +25,9 @@ edge-disagreements, across all benchmark datasets.
 
 ## Required Libraries
 numpy, torch, scipy, networkx, matplotlib, tqdm, scikit-learn, pandas
+
+### How to run experiments :
+```shell
+python PartialTest.py #: This will run Size Ratio Experiment (Figure 2)
+python NoiseTest.py #: This will run Noise Experiment (Figure 3)
+```

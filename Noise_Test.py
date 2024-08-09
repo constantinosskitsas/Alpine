@@ -45,10 +45,10 @@ foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
-#percs =[0.5]
+percs =[0.5]
 tun=[1,2,3,4,5,6,8]
 tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
-#nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -83,13 +83,13 @@ for k in range(0,len(foldernames)):
 # Get the number of edges
         DGES = G.number_of_edges()
         
-        #perc=percs[0]
-        for perc in percs: 
+        perc=percs[0]
+        for noiseL in nL: 
             for ptun in range(len(tun)): 
-                folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
-                os.makedirs(f'{experimental_folder}{foldernames[k]}/{int(perc*100)}', exist_ok=True)
-                folder1=f'./{experimental_folder}/{foldernames[k]}/{int(perc*100)}'
-                file_fusbal_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
+                folder = f'./{folderall}/{foldernames[k]}{noiseL}/{int(perc*100)}'
+                os.makedirs(f'{experimental_folder}{foldernames[k]}{noiseL}/{int(perc*100)}', exist_ok=True)
+                folder1=f'./{experimental_folder}/{foldernames[k]}{noiseL}/{int(perc*100)}'
+                file_fusbal_results = open(f'{folder1}/NoiseTest_results{tuns[ptun]}.txt', 'w')
                 file_fusbal_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
