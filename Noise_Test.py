@@ -1,5 +1,5 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, algo_fusbal
+from pred import convex_initSM, align_SM, align_new, Alpine
 from help_functions import read_graph
 import torch
 import scipy
@@ -46,7 +46,7 @@ n_G = [ 1133,379, 1004, 327, 712]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
-tun=[1,2,3,4,5,6,8]
+tun=[1,2,3,4,5,6,7]
 tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
@@ -103,7 +103,6 @@ for k in range(0,len(foldernames)):
                     file_subgraph = f'{folder_}/subgraph.txt'
                     file_nodes = f'{folder_}/nodes.txt'
                     Q_real = read_list(file_nodes)
-                    
                     G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
                     A = nx.adjacency_matrix(G_Q).todense()
                     QGS=G_Q.number_of_nodes()
@@ -116,10 +115,8 @@ for k in range(0,len(foldernames)):
                     file_real_spectrum.write(f'\n')
                     start = time.time()
                     if(tun[ptun]==1):
-                        #algo_fusbal
                         print("Alpine")
-                        #_, list_of_nodes, forb_norm = align_SM(G_Q.copy(), G.copy())
-                        _, list_of_nodes, forb_norm = algo_fusbal(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=1)
                     elif(tun[ptun]==2):
                         print("Cone")
                         _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
@@ -134,32 +131,23 @@ for k in range(0,len(foldernames)):
                         _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
                     elif(tun[ptun]==6):
                         print("Regal")
-                        _, list_of_nodes, forb_norm = Regal(G_Q.copy(), G.copy())
+                        _, list_of_nodes, forb_norm = Regal(G_Q.copy(), G.copy())     
                     elif(tun[ptun]==7):
-                        print("FUNPGA_D")
-                        _, list_of_nodes, forb_norm = algo_fusbal(G_Q.copy(), G.copy(),mu=1,weight=2)        
-                    elif(tun[ptun]==8):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
                     else:
                         print("Error")
                         exit()
-                    #_, list_of_nodes, forb_norm = align_SM(G_Q.copy(), G.copy(), mu=1,weight=1)
-                    #_, list_of_nodes, forb_norm = align_SM(G_Q.copy(), G.copy(), mu=1)
-                    #_, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),weight=tun[ptun])
                     end = time.time()
                     subgraph = G.subgraph(list_of_nodes)
-                    
                     PGS=subgraph.number_of_nodes()
                     PGES = subgraph.number_of_edges()
-                    #isomorphic = nx.is_isomorphic(subgraph, G_Q.copy())
                     isomorphic=False
                     if(forb_norm==0):
                         isomorphic=True
                     time_diff = end - start
                     file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
-                    
                     A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
                     L = np.diag(np.array(np.sum(A, axis = 0)))
                     eigv_G_pred, _ = linalg.eig(L - A)
@@ -170,15 +158,11 @@ for k in range(0,len(foldernames)):
                     spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-                    #printR("FusbalT",forb_norm,accuracy,spec_norm,time_diff,isomorphic)
                     printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)
                 #if plotall:
                 #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
             print('\n')
         print('\n\n')
-
-
-
 sys.exit()
 
 

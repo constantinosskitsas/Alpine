@@ -42,8 +42,8 @@ folderall = 'data3_'
 
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
-#foldernames = ['netscience']
-#n_G=[379]
+#foldernames = ['netscience',"highschool"]
+#n_G=[379,327]
 n_G = [ 1133,379, 1004, 327, 712]
 #n_G = [1133]
 iters =50

@@ -447,7 +447,7 @@ def FunPGA(A, B, K, niter):
     return P, forbnorm
 
 
-def fusbal_pp(A, B, K, niter):
+def Alpine_pp(A, B, K, niter):
 
     n = len(A)
     m = len(B)
@@ -467,35 +467,10 @@ def fusbal_pp(A, B, K, niter):
     
     for i in range(niter):
         for it in range(1, 11):
-            #deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)
-            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)
-            #term1 = -2 * torch.matmul(torch.matmul(C, A.T), torch.matmul(C.T, torch.matmul(P, B)))
-            #term2 = -2 * torch.matmul(torch.matmul(C, A), torch.matmul(C.T, torch.matmul(P, B.T)))
-
-            #inner_term1 = torch.matmul(torch.matmul(C.T, P), torch.matmul(B, torch.matmul(P.T, torch.matmul(C, torch.matmul(C.T, P)))))
-            #inner_term2 = torch.matmul(torch.matmul(C.T, P), torch.matmul(B.T, torch.matmul(P.T, torch.matmul(C, torch.matmul(C.T, P)))))
-
-            #term3 = 2 * torch.matmul(C, inner_term1 + inner_term2)
-
-# Complex term involving K and mat_ones
-            #complex_term = K+ i*(mat_ones - 2*P)
-
-# Final result
-            #result = term1 + term2 + term3 + complex_term
-
-# Final result
-            #deriv = term1 + term2 + term3 + K#complex_term                                        
-            # maxIter = 1500                      
+            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)               
             q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
-            #q=ot.sinkhorn(ones_augm_, ones_, deriv, reg, method="sinkhorn", numItermax = 1000, stopThr =  1e-6)
-            #q=ot.sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",numItermax = 1500, stopThr = 1e-5) 
-            
-            
-            #q= ot.sinkhorn(ones_augm_,ones_,deriv[:n+1, :m],reg,method="sinkhorn",numItermax = 1500, stopThr = 1e-5)
             alpha = 2.0 / float(2.0 + it)                                               
             P[:n, :m] = P[:n, :m] + alpha * (q[:n, :m] - P[:n, :m])
-            
-    #P2,_ = convertToPermHungarian(P, m, m)
     P2,_ = convertToPermHungarian(P, m, n)
     forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
     return P, forbnorm
@@ -588,8 +563,7 @@ def convex_initSM2(A, B, K, niter,weight):
     forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
     return P, forbnorm
 
-def algo_fusbal(Gq, Gt, mu=1, niter=10, weight=1.0):
-
+def Alpine(Gq, Gt, mu=1, niter=10, weight=1.0):
     n1 = Gq.number_of_nodes()
     n2 = Gt.number_of_nodes()
     n = max(n1, n2)
@@ -598,25 +572,17 @@ def algo_fusbal(Gq, Gt, mu=1, niter=10, weight=1.0):
         Gq.add_edge(i,i)
     for i in range(n2, n):
        Gt.add_node(i)
-    
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    #Gq.add_node(n1) --other
     if (weight==2):
-        #print("FB_D")
         F1 = feature_extraction1(Gq)
         F2 = feature_extraction1(Gt)  
     else:
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
-    #D = torch.zeros((n,n),dtype = torch.float64)
     D = eucledian_dist(F1,F2,n)
-    #P, forbnorm =FunPGA(A, B, mu*D, niter)
-    P, forbnorm = fusbal_pp(A[:n1,:n1], B, mu*D, niter)
-
+    P, forbnorm = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
     _, ans = convertToPermHungarian2(P, n1, n2)
-    
-    #P_perm, ans = convertToPermHungarian(P, n1, n2)
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm    
