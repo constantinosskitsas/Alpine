@@ -43,7 +43,10 @@ folderall = 'data3_'
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
-iters =50
+
+foldernames = [ 'netscience']
+n_G = [379]
+iters =1
 percs = [(i+1)/10 for i in range(0,10)]
 #percs =[0.5]
 tun=[1,2,3,4,5,6,7]
@@ -144,14 +147,12 @@ for k in range(0,len(foldernames)):
                     
                     PGS=subgraph.number_of_nodes()
                     PGES = subgraph.number_of_edges()
-                    #isomorphic = nx.is_isomorphic(subgraph, G_Q.copy())
                     isomorphic=False
                     if(forb_norm==0):
                         isomorphic=True
                     time_diff = end - start
                     file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
-                    
                     A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
                     L = np.diag(np.array(np.sum(A, axis = 0)))
                     eigv_G_pred, _ = linalg.eig(L - A)
@@ -162,7 +163,6 @@ for k in range(0,len(foldernames)):
                     spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-                    #printR("FusbalT",forb_norm,accuracy,spec_norm,time_diff,isomorphic)
                     printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)
                 #if plotall:
                 #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                

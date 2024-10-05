@@ -146,7 +146,6 @@ def generate_data_noise(foldernames, n_G, iters, percs,alg):
                     file_subgraph.write(f"{edge[0]} {edge[1]}\n")
         print('\n\n')
 
-
 def remove_e(edges, noise, no_disc=True, until_connected=False):
     ii = 0
     while True:
@@ -177,6 +176,18 @@ def remove_e(edges, noise, no_disc=True, until_connected=False):
             break
     return new_edges
 
+
+def generate_LGN(dataset,size,iters,noiseL):
+    G = read_real_graph(size, name_ = f'./raw_data/{dataset}.txt')
+    for i in range(iters):
+        G1=G.copy()
+        Src_e = np.array(G1.edges)
+        Src_e = remove_e(Src_e, noiseL/100)
+        G1 = nx.from_edgelist(Src_e)
+        if not os.path.exists(f'./data3_/{dataset}raw/'): os.makedirs(f'./data3_/{dataset}raw/')
+        file_subgraph = open(f'./data3_/{dataset}raw/{noiseL}_{i}.txt','w')
+        for edge in G1.edges():
+            file_subgraph.write(f"{edge[0]} {edge[1]}\n")
 foldernames = ['arenas', 'celegans', 'netscience', 'multimanga', 'highschool', 'voles']
 n_G = [1133, 453, 379, 1004, 327, 712]
 
@@ -186,4 +197,5 @@ iters = 50
 percs = [(i+1)/10 for i in range(9,10)]
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
-generate_data(foldernames, n_G, iters, percs,"AS")
+#generate_data(foldernames, n_G, iters, percs,"AS")
+generate_LGN("netscience",379,iters,25)
