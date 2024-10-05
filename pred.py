@@ -464,7 +464,9 @@ def Alpine_pp(A, B, K, niter):
     ones_ = torch.ones(m, dtype = torch.float64)
     ones_augm_ = torch.ones(n+1, dtype = torch.float64)
     ones_augm_[-1] = m-n
-    
+    P1 =K+ 1*(mat_ones - 2*P)   
+    forbnorm = LA.norm(A - C.T@P1@B@P1.T@C, 'fro')**2
+    return P1, forbnorm
     for i in range(niter):
         for it in range(1, 11):
             deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)               
@@ -582,7 +584,8 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=1.0):
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
     P, forbnorm = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
-    _, ans = convertToPermHungarian2(P, n1, n2)
+    #P=D*-1
+    _, ans = convertToPermHungarian2(D, n1, n2)
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm    
