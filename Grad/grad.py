@@ -56,7 +56,7 @@ def gradMain(Gq, Gt, mu=1, niter=10, weight=1.0):
         list_of_nodes2_sorted.append(i)
 # Reorder list_of_nodes1 with the same indices
     list_of_nodes1_sorted = seed_list1[sorted_indices]
-    P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,list_of_nodes1_sorted,m,n)
+    P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,list_of_nodes1_sorted.tolist(),m,n)
     A = nx.to_numpy_array(Gq)
     B = nx.to_numpy_array(Gt)
     forbnorm = LA.norm(A[:m,:m] - (P2@B@P2.T)[:m,:m], 'fro')**2

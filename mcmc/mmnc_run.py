@@ -280,10 +280,14 @@ def run_immnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,
         list_of_nodes2_sorted.append(i)
     #for i in range
     m=len(list_of_nodes)
-    P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,list_of_nodes,m,len(g2.nodes))
+    n=len(g2.nodes)
+    n1=max(m,n)
+    n2=min(m,n)
+    copy_list_of_nodes=list_of_nodes.copy()
+    P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,copy_list_of_nodes,n1,n1)
     #print(list_of_nodes2_sorted)
     A = nx.to_numpy_array(g1)
     B = nx.to_numpy_array(g2)
     
-    forbnorm = LA.norm(A[:m,:m] - (P2@B@P2.T)[:m,:m], 'fro')**2 
+    forbnorm = LA.norm(A[:n2,:n2] - (P2@B@P2.T)[:n2,:n2], 'fro')**2 
     return list_of_nodes,forbnorm

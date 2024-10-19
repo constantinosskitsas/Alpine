@@ -118,10 +118,11 @@ class GradAlign:
             
             index = list(set(index) - set(seed_list1))
             columns = list(set(columns) - set(seed_list2))
-             
-            if self.fast_mode == True:        
-                index = list(set.union(*[set(self.G1.neighbors(node)) for node in seed_list1])- set(seed_list1))
-                columns = list(set.union(*[set(self.G2.neighbors(node)) for node in seed_list2])- set(seed_list2))
+            #index = list(set.union(*[set(self.G1.neighbors(node)) for node in seed_list1])- set(seed_list1))
+            #columns = list(set.union(*[set(self.G2.neighbors(node)) for node in seed_list2])- set(seed_list2))
+            #if self.fast_mode == True:        
+            #    index = list(set.union(*[set(self.G1.neighbors(node)) for node in seed_list1])- set(seed_list1))
+            #    columns = list(set.union(*[set(self.G2.neighbors(node)) for node in seed_list2])- set(seed_list2))
                 
             seed_n_id_list = seed_list1 + seed_list2
             if len(columns) == 0 or len(index) == 0:
