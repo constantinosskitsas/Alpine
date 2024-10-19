@@ -12,7 +12,6 @@ from multiprocessing import Pool
 import scipy
 from sklearn.metrics.pairwise import euclidean_distances
 from sinkhorn import greenkhorn,sinkhorn,sinkhorn_epsilon_scaling,sinkhorn_knopp,sinkhorn_stabilized
-#Fugal Algorithm was provided by anonymous authors.
 import numpy as np
 import math
 import torch

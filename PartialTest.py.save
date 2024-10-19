@@ -1,6 +1,6 @@
 import numpy as np
 from pred import convex_initSM, align_SM, align_new, Alpine
-from help_functions import read_graph
+from help_Anctions import read_graph
 import torch
 import scipy
 import networkx as nx
@@ -8,7 +8,7 @@ import numpy.linalg as linalg
 import matplotlib.pyplot as plt
 import sys
 from numpy import linalg as LA
-from help_functions import read_real_graph, read_list
+from help_Anctions import read_real_graph, read_list
 import time
 import os
 from aa import generate_new_id,create_new_folder,get_max_previous_id 
@@ -23,19 +23,7 @@ from Grad.grad import gradMain
 
 #git push -f origin main
 
-#QAP
-#ACCURACY
-#SPECTRUM NORM
 
-#FUSBAL RESULTS
-#QAP ACCYRACY SPECTRUM
-
-#FUGAL RESULTS
-#QAP ACCYRACY SPECTRUM TIME
-
-#REAL SPECTRUM
-#FUSBAL SPECTRU
-#FUGAL SPECTRUM
 
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
@@ -69,13 +57,7 @@ def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print()     
 
 
-def plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal):
-    plt.plot(eigv_G_Q, color = 'b', label = 'Real')
-    plt.plot(eigv_G_pred, color = 'r', label = 'Fusbal')
-    plt.plot(eigv_G_fugal, color = 'g', label = 'Fugal')
-    plt.title('Spectrum')
-    plt.legend()
-    plt.show()
+
 experimental_folder=f'./{folderall}/res/'
 new_id = generate_new_id(get_max_previous_id(experimental_folder))
 experimental_folder=f'./{folderall}/res/_{new_id}/'   
@@ -99,11 +81,11 @@ for k in range(0,len(foldernames)):
                 folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
                 os.makedirs(f'{experimental_folder}{foldernames[k]}/{int(perc*100)}', exist_ok=True)
                 folder1=f'./{experimental_folder}/{foldernames[k]}/{int(perc*100)}'
-                file_fusbal_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
-                file_fusbal_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
+                file_Asbal_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
+                file_Asbal_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
-                file_fusbal_spectrum = open(f'{folder1}/fusbal_Tspectrum{tuns[ptun]}.txt', 'w')
+                file_Asbal_spectrum = open(f'{folder1}/Asbal_Tspectrum{tuns[ptun]}.txt', 'w')
                 #n_Q = int(perc*G.number_of_nodes())
                 n_Q=1034
                 print(f'Size of subgraph: {n_Q}')
@@ -175,18 +157,18 @@ for k in range(0,len(foldernames)):
                     #eigv_G_pred, _ = linalg.eig(L - A)
                     #idx = eigv_G_pred.argsort()[::]   
                     #eigv_G_pred = eigv_G_pred[idx]
-                    #for el in eigv_G_pred: file_fusbal_spectrum.write(f'{el} ')
-                    #file_fusbal_spectrum.write(f'\n')
+                    #for el in eigv_G_pred: file_Asbal_spectrum.write(f'{el} ')
+                    #file_Asbal_spectrum.write(f'\n')
                     #spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1265
                     spec_norm=0
-                    file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+                    file_Asbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
 
-                    #file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+                    #file_Asbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
                     printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)
                 #if plotall:
-                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
+                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_Agal)                
             print('\n')
         print('\n\n')
 
@@ -218,11 +200,3 @@ for i in range(5):
     eigv_G_induced2 = eigv_G_induced2[idx]
     print(list_of_nodes2)
     print(f'-----> {forbnorm}')
-
-    if plotall:
-        plt.plot(eigv_Gsmall, color = 'b', label = 'Real')
-        plt.plot(eigv_G_induced, color = 'r', label = 'Fusbal')
-        plt.plot(eigv_G_induced2, color = 'g', label = 'Fugal')
-        plt.title('Spectrum')
-        plt.legend()
-        plt.show()
