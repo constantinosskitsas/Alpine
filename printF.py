@@ -114,17 +114,20 @@ time = []
 isocounter=0
 SS=[10,20,30,40,50,60,70,80,90]
 #SS=[50]
-#SS=[80,90]
+SS=[50]
 #SS=[30]
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 nL1=["5","10","15","20","25"]
+nL=["_Noise10","_Noise20"]
+nL1=["10","20"]
 #DS=["arenas"]
 DS1=["arenas","netscience","multimanga","highschool","voles"]
-DS1=["highschool"]
+#DS1=["highschool"]
+DS=["_726/arenas","_726/netscience","_726/multimanga","_726/highschool","_726/voles"]
 
-DS=["_94/highschool"]
+#DS=["_94/highschool"]
 AS=["Alpine","Alpine_Dummy","Cone","Grampa","Regal","SGWL"]
-AS=["Grad","mcmc"]
+AS=["Grad"]
 avg_forb_norm = [[] for _ in range(len(AS))]
 avg_accuracy = [[] for _ in range(len(AS))]
 avg_spec_norm = [[] for _ in range(len(AS))]
@@ -139,10 +142,11 @@ std_iso = [[] for _ in range(len(AS))]
 folderall_ = 'data3_/res'
 u=0
 for j in range(len(DS)):    
-    for i in nL1:#SS before
+    for i in nL1:#nL1:#SS before
         u=0
         for t in AS:
-            with open(f'{folderall_}/_438/highschool{i}/50/NoiseTest_results{t}.txt', 'r') as file:
+            #with open(f'{folderall_}/{DS[j]}/{i}/SizeTest_results{t}.txt', 'r') as file:
+            with open(f'{folderall_}/{DS[j]}_Noise{i}/50/NoiseTest_results{t}.txt', 'r') as file:
                 tolerance = 1e-10
                 next(file)
                 for line in file:
@@ -190,14 +194,14 @@ for j in range(len(DS)):
     for t in range(len(nL1)): #ss
            #print(SS[t],avg_forb_norm[aa][t],std_forb_norm[aa][t],avg_accuracy[aa][t],std_accuracy[aa][t],avg_spec_norm[aa][t],std_spec_norm[aa][t],avg_time[aa][t],std_time[aa][t])
         #print(SS[t],avg_forb_norm[0][t],avg_forb_norm[1][t],avg_forb_norm[2][t],avg_forb_norm[3][t],avg_forb_norm[4][t],avg_forb_norm[5][t])
-        print(SS[t],avg_forb_norm[0][t],avg_forb_norm[1][t])     
+        print(nL1[t],avg_forb_norm[0][t])     
         print()
     for t in range(len(nL1)): #ss
         #print(SS[t],avg_accuracy[0][t],avg_accuracy[1][t],avg_accuracy[2][t],avg_accuracy[3][t],avg_accuracy[4][t],avg_accuracy[5][t])
         #print()
-        print(f"{SS[t]:.4f}", 
-        f"{avg_accuracy[0][t]:.4f}", 
-        f"{avg_accuracy[1][t]:.4f}") 
+        #print(f"{nL1[t]:.4f}", 
+        print(nL1[t], 
+        f"{avg_accuracy[0][t]:.4f}") 
       #f"{avg_accuracy[2][t]:.4f}", 
       #f"{avg_accuracy[3][t]:.4f}", 
       #f"{avg_accuracy[4][t]:.4f}", 

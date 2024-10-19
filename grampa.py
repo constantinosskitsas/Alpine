@@ -17,7 +17,10 @@ from numpy import linalg as LA
 def convertToPermHungarian(M, n1, n2):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
     n = len(M)
-
+    print(len(row_ind))
+    print(len(col_ind))
+    print(n)
+    print(n1)
     P = np.zeros((n, n))
     ans = []
     for i in range(n):

@@ -19,24 +19,11 @@ from REGAL.regal import Regal
 from MDS import MDSGA
 from mcmc.mc import mcAlign
 from Grad.grad import gradMain
-#git push -f origin main
+from GradP.gradp import gradPMain
 
-#QAP
-#ACCURACY
-#SPECTRUM NORM
 
-#FUSBAL RESULTS
-#QAP ACCYRACY SPECTRUM
-
-#FUGAL RESULTS
-#QAP ACCYRACY SPECTRUM TIME
-
-#REAL SPECTRUM
-#FUSBAL SPECTRU
-#FUGAL SPECTRUM
-
-os.environ["MKL_NUM_THREADS"] = "40"
-torch.set_num_threads(40)
+os.environ["MKL_NUM_THREADS"] = "5"
+torch.set_num_threads(5)
 
 plotall = False
 
@@ -47,6 +34,8 @@ foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
 #foldernames = [ 'highschool']
 #n_G = [ 327]
+#foldernames = [ 'netscience', 'highschool', 'voles']
+#n_G = [ 379,  327, 712]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
@@ -54,10 +43,11 @@ percs =[0.5]
 #tun=[8,9]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
-tun=[8]
+tun=[10]
 tuns=["Grad"]
 #nL=["5","10","15","20","25"]
-nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+nL=["_Noise10","_Noise20"]
+#nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -68,13 +58,7 @@ def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print()     
 
 
-def plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal):
-    plt.plot(eigv_G_Q, color = 'b', label = 'Real')
-    plt.plot(eigv_G_pred, color = 'r', label = 'Fusbal')
-    plt.plot(eigv_G_fugal, color = 'g', label = 'Fugal')
-    plt.title('Spectrum')
-    plt.legend()
-    plt.show()
+
 experimental_folder=f'./{folderall}/res/'
 new_id = generate_new_id(get_max_previous_id(experimental_folder))
 experimental_folder=f'./{folderall}/res/_{new_id}/'   
@@ -99,11 +83,11 @@ for k in range(0,len(foldernames)):
                 #folderDG = f'./{folderall}/{foldernames[k]}raw'
                 os.makedirs(f'{experimental_folder}{foldernames[k]}{noiseL}/{int(perc*100)}', exist_ok=True)
                 folder1=f'./{experimental_folder}/{foldernames[k]}{noiseL}/{int(perc*100)}'
-                file_fusbal_results = open(f'{folder1}/NoiseTest_results{tuns[ptun]}.txt', 'w')
-                file_fusbal_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
+                file_A_results = open(f'{folder1}/NoiseTest_results{tuns[ptun]}.txt', 'w')
+                file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
-                file_fusbal_spectrum = open(f'{folder1}/fusbal_Tspectrum{tuns[ptun]}.txt', 'w')
+                file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
                 n_Q = int(perc*G.number_of_nodes())
                 print(f'Size of subgraph: {n_Q}')
                 for iter in range(iters):
@@ -132,7 +116,7 @@ for k in range(0,len(foldernames)):
                     start = time.time()
                     if(tun[ptun]==1):
                         print("Alpine")
-                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
                     elif(tun[ptun]==2):
                         print("Cone")
                         _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
@@ -157,6 +141,9 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==9):
                         print("mcmc")
                         list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
+                    elif(tun[ptun]==10):
+                        print("GradAlignP")
+                        list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
                     else:
                         print("Error")
                         exit()
@@ -176,15 +163,13 @@ for k in range(0,len(foldernames)):
                     eigv_G_pred, _ = linalg.eig(L - A)
                     idx = eigv_G_pred.argsort()[::]   
                     eigv_G_pred = eigv_G_pred[idx]
-                    for el in eigv_G_pred: file_fusbal_spectrum.write(f'{el} ')
-                    file_fusbal_spectrum.write(f'\n')
+                    for el in eigv_G_pred: file_A_spectrum.write(f'{el} ')
+                    file_A_spectrum.write(f'\n')
                     #spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     spec_norm=0
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
-                    file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)
-                #if plotall:
-                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
+                    file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)              
             print('\n')
         print('\n\n')
 sys.exit()
@@ -214,10 +199,3 @@ for i in range(5):
     print(list_of_nodes2)
     print(f'-----> {forbnorm}')
 
-    if plotall:
-        plt.plot(eigv_Gsmall, color = 'b', label = 'Real')
-        plt.plot(eigv_G_induced, color = 'r', label = 'Fusbal')
-        plt.plot(eigv_G_induced2, color = 'g', label = 'Fugal')
-        plt.title('Spectrum')
-        plt.legend()
-        plt.show()

@@ -4,7 +4,7 @@ import networkx as nx
 from networkx.algorithms.isomorphism import GraphMatcher
 import time
 import torch
-from pred import convex_initSM, align_SM, align_new,algo_fusbal,standardize_nodes
+from pred import convex_initSM, align_SM, align_new,standardize_nodes
 def read_graph_from_file(file_path):
     nodes = set()
     with open(file_path, 'r') as file:
@@ -124,13 +124,12 @@ def main():
             matcher1 = GraphMatcher(G1, G_Q1)
             #G = standardize_nodes(G)
             counter+=1
-            #matcher1 = GraphMatcher(G_Q.copy(), G.copy())
             isom=matcher1.subgraph_is_isomorphic()
             
             end1 = time.time()
             print(isom,end1-start1)
             start = time.time()
-            _, list_of_nodes, forb_norm = algo_fusbal(G_Q.copy(), G.copy())
+            _, list_of_nodes, forb_norm = align_SM(G_Q.copy(), G.copy())
             end = time.time()
             if (forb_norm==0):
                 counterC+=1

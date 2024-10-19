@@ -113,31 +113,17 @@ iso_=[]
 time = []
 isocounter=0
 SS=[10,20,30,40,50,60,70,80,90]
-#SS=[50]
-#SS=[80,90]
-#SS=[30]
+
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 nL1=["5","10","15","20","25"]
 #DS=["arenas"]
 DS1=["arenas","netscience","multimanga","highschool","voles"]
-#DS1=["arenas"]
-#AS=["fugal","fusbal","fugal_nf","fusbal_nf"]
-#DS1=["netscience","highschool"]
-#DS = ['_32/arenas', '_24/netscience', '_30/multimanga', '_26/highschool', '_28/voles']
-DS = ['_419/arenas', '_419/netscience', '_419/multimanga', '_419/highschool', '_419/voles']
 
-#DS = ['_263/arenas']
-#DS = [ '_146/netscience',  '_146/highschool']
-#DS0 = [ '_152/netscience', '_152/highschool']
-#DS01 = [ 'sslres/netscience',  'sslres/highschool']
-#AS=["fusbal_Tresults1","fusbal_Tresults0_9","fusbal_Tresults0_8","fusbal_Tresults0_7","fusbal_Tresults0_6","fusbal_Tresults0_5","fusbal_Tresults0_4","fusbal_Tresults0_3","fusbal_Tresults0_2","fusbal_Tresults0_1"]
-#AS=["fusbal_TresultsE0","fusbal_TresultsE1","fusbal_TresultsE2"]
-#AS=["fusbal_TresultsEF","fusbal_TresultsNF","fusbal_TresultsEFmax","ssl_results"]
-#AS=["fusbal_TresultsEFmax"]
-#AS=["Fus","FusErr","Fus++","Fus++Err"]
-#AS=["Cone","regal","Grampa","SGWL"]
-AS=["FunPGA","fugal","Cone","Grampa","Regal","SGWL"]
-AS=["mcmc"]
+DS = ['_419/arenas', '_419/netscience', '_419/multimanga', '_419/highschool', '_419/voles']
+DS = ['_448/arenas', '_448/netscience', '_448/multimanga', '_448/highschool', '_448/voles']
+
+AS=["Cone","Grampa","Regal","SGWL"]
+AS=["Grad"]
 avg_forb_norm = [[] for _ in range(len(AS))]
 avg_accuracy = [[] for _ in range(len(AS))]
 avg_spec_norm = [[] for _ in range(len(AS))]
@@ -153,11 +139,11 @@ folderall_ = 'data3_/res'
 
 u=0
 for j in range(len(DS)):    
-    for i in SS:#SS before
+    for i in nL:#SS before
         u=0
         for t in AS:
             at=DS[j]
-            with open(f'{folderall_}/{at}/{i}/SizeTest_results{t}.txt', 'r') as file:
+            with open(f'{folderall_}/{at}{i}/50/NoiseTest_results{t}.txt', 'r') as file:
                 tolerance = 1e-10
                 next(file)
                 for line in file:
@@ -195,8 +181,10 @@ for j in range(len(DS)):
     print("Dataset: ",DS1[j] )
     for aa in range(u):
         print("Algorithm: ",AS[aa])
-        for t in range(len(SS)): #ss
-            print(SS[t],avg_forb_norm[aa][t],std_forb_norm[aa][t],avg_accuracy[aa][t],std_accuracy[aa][t],avg_spec_norm[aa][t],std_spec_norm[aa][t],avg_time[aa][t],std_time[aa][t])
+        for t in range(len(nL)): #ss
+            #print(nL1[t],avg_forb_norm[aa][t],std_forb_norm[aa][t],avg_accuracy[aa][t],std_accuracy[aa][t],avg_spec_norm[aa][t],std_spec_norm[aa][t],avg_time[aa][t],std_time[aa][t])
+            print(nL1[t],avg_forb_norm[aa][t],avg_accuracy[aa][t])
+
     for t in range(len(AS)):
     #for t in range(0):
         avg_forb_norm[t].clear()

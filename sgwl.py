@@ -83,7 +83,8 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
     ot_dict= {
         'loss_type': 'L2',  # the key hyperparameters of GW distance
         'ot_method': 'proximal',
-        'beta': 0.1,
+        #'beta': 0.1,
+        'beta': 0.2,
         'iter_bound': 1e-10,
         'inner_iteration': 2,
         'sk_bound': 1e-30,#--mine
