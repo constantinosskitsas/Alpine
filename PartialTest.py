@@ -44,15 +44,14 @@ n_G = [ 1133,379, 1004, 327, 712]
 #9871
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
-percs =[0.5]
+
 #tun=[1,2,3,4,5,6,7]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Grad","mcmc"]
-tun=[1,2,3,4,5,6,8,9]
+tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Grad","mcmc","GradP"]
+tun=[1,2,3,4,5,6,8,9,10]
 #tuns=["Alpine_Dummy","Grad","mcmc"]
 #tun=[4,8,9]
 
-tuns=["Alpine_Dummy","GradP"]
-tun=[4,10]
+
 #tuns=["mcmc"]
 #tun = [9]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
@@ -179,16 +178,11 @@ for k in range(0,len(foldernames)):
                     L = np.diag(np.array(np.sum(A, axis = 0)))
 
 
-                    accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)#n_GT[k] 
+                    accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     #len(Q_real)
-                    print(len(Q_real))
-                    #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/437
                     spec_norm=0
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-
-                    printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)
-                #if plotall:
-                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
+                    printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)            
             print('\n')
         print('\n\n')
 

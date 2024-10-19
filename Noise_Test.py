@@ -19,7 +19,7 @@ from REGAL.regal import Regal
 from MDS import MDSGA
 from GradP import gradp
 from Grad import grad
-
+from GradP.gradp import gradPMain
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
 
@@ -35,8 +35,8 @@ percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
 tun=[1,2,3,4,5,6,7]
 tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
-nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-tun=[1,2,3,4,5,6,7]
+#nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+tun=[1,2,3,4,5,6,7,8,9,10]
 tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
@@ -144,9 +144,7 @@ for k in range(0,len(foldernames)):
                     spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)
-                #if plotall:
-                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
+                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)          
             print('\n')
         print('\n\n')
 sys.exit()

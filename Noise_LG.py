@@ -22,8 +22,8 @@ from Grad.grad import gradMain
 from GradP.gradp import gradPMain
 
 
-os.environ["MKL_NUM_THREADS"] = "5"
-torch.set_num_threads(5)
+os.environ["MKL_NUM_THREADS"] = "40"
+torch.set_num_threads(540)
 
 plotall = False
 
@@ -32,22 +32,17 @@ folderall = 'data3_'
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
-#foldernames = [ 'highschool']
-#n_G = [ 327]
-#foldernames = [ 'netscience', 'highschool', 'voles']
-#n_G = [ 379,  327, 712]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
-#tun=[1,2,3,4,5,6]
-#tun=[8,9]
-#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+
+tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS","Grad"]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
-tun=[10]
+tun=[1,2,3,4,5,6,7,8,9,10]
 tuns=["Grad"]
 #nL=["5","10","15","20","25"]
-nL=["_Noise10","_Noise20"]
-#nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+
+nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
