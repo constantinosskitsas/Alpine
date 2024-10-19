@@ -78,9 +78,12 @@ def dfs(G, n_Q):
     return list(nx.dfs_preorder_nodes(G, source = source_node))[0:n_Q]    
 
 def generate_data(foldernames, n_G, iters, percs,alg):
-    for k in range(len(foldernames)):
-        G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
-        print(foldernames[k], G)
+    n=80
+    #for k in range(len(foldernames)):
+    for k in range(1):
+        #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+        G = read_real_graph(n, name_ = f'./raw_data/random/subgraph_DG_{n}.txt')
+        print(n, G)
         selected_sources = set()
         for perc in percs: 
             n_Q = int(perc*G.number_of_nodes())
@@ -96,14 +99,14 @@ def generate_data(foldernames, n_G, iters, percs,alg):
                 random.shuffle(dfs_traversal_G)
                 map_id_to_index = {}
                 for i in range(n_Q): map_id_to_index[dfs_traversal_G[i]] = i
-                folder_ = f'./{folderall}/{foldernames[k]}/{int(perc*100)}/{iter}'
-                if not os.path.exists(folder_): os.makedirs(folder_)
-                file_subgraph = open(f'{folder_}/subgraph.txt','w')
+                #folder_ = f'./{folderall}/{foldernames[k]}/{int(perc*100)}/{iter}'
+                #if not os.path.exists(folder_): os.makedirs(folder_)
+                file_subgraph = open(f'./raw_data/random/subgraph_QG_{n}.txt','w')
                 for i in range(n_Q):
                     for j in range(i, n_Q):
                         if G.has_edge(dfs_traversal_G[i],dfs_traversal_G[j]):
                             file_subgraph.write(f'{map_id_to_index[dfs_traversal_G[i]]} {map_id_to_index[dfs_traversal_G[j]]}\n')
-                file_nodes = open(f'{folder_}/nodes.txt','w')
+                file_nodes = open(f'./raw_data/random/nodes_QG_{n}.txt','w')
                 for node in dfs_traversal_G: file_nodes.write(f'{node}\n')
         print('\n\n')
 
@@ -191,11 +194,22 @@ def generate_LGN(dataset,size,iters,noiseL):
 foldernames = ['arenas', 'celegans', 'netscience', 'multimanga', 'highschool', 'voles']
 n_G = [1133, 453, 379, 1004, 327, 712]
 
-#foldernames = ['cit-DBLP']
+foldernames = ['cit-DBLP']
 #n_G = [12591]
-iters = 50
+iters = 1
+#foldernames=["DG_"]
 percs = [(i+1)/10 for i in range(9,10)]
+percs=[0.5]
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
-#generate_data(foldernames, n_G, iters, percs,"AS")
-generate_LGN("netscience",379,iters,25)
+generate_data(foldernames, n_G, iters, percs,"RW")
+#generate_LGN("highschool",327,iters,25)
+n=80
+#for i in range(7):
+#    G = nx.erdos_renyi_graph(n, 0.1)
+ #   file_subgraph = open(f'raw_data/random/subgraph_DG_{n}.txt','w')
+ #   for edge in G.edges():
+ #       file_subgraph.write(f"{edge[0]} {edge[1]}\n")
+#    print(n)
+#    n=n*2
+    

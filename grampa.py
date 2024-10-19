@@ -28,7 +28,7 @@ def convertToPermHungarian(M, n1, n2):
     return P, ans
 def Grampa(Gq,Gt):
     print("Grampa")
-    os.environ["MKL_NUM_THREADS"] = "10"
+    #os.environ["MKL_NUM_THREADS"] = "10"
     eta=0.2
     n1 = len(Gq.nodes())
     n2 = len(Gt.nodes())

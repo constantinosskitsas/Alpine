@@ -120,10 +120,11 @@ nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 nL1=["5","10","15","20","25"]
 #DS=["arenas"]
 DS1=["arenas","netscience","multimanga","highschool","voles"]
-DS1=["netscience"]
+DS1=["highschool"]
 
-DS=["_44/netscience"]
+DS=["_94/highschool"]
 AS=["Alpine","Alpine_Dummy","Cone","Grampa","Regal","SGWL"]
+AS=["Grad","mcmc"]
 avg_forb_norm = [[] for _ in range(len(AS))]
 avg_accuracy = [[] for _ in range(len(AS))]
 avg_spec_norm = [[] for _ in range(len(AS))]
@@ -141,7 +142,7 @@ for j in range(len(DS)):
     for i in nL1:#SS before
         u=0
         for t in AS:
-            with open(f'{folderall_}/_44/netscience{i}/50/NoiseTest_results{t}.txt', 'r') as file:
+            with open(f'{folderall_}/_438/highschool{i}/50/NoiseTest_results{t}.txt', 'r') as file:
                 tolerance = 1e-10
                 next(file)
                 for line in file:
@@ -188,18 +189,19 @@ for j in range(len(DS)):
         #print("Algorithm: ",AS[aa])
     for t in range(len(nL1)): #ss
            #print(SS[t],avg_forb_norm[aa][t],std_forb_norm[aa][t],avg_accuracy[aa][t],std_accuracy[aa][t],avg_spec_norm[aa][t],std_spec_norm[aa][t],avg_time[aa][t],std_time[aa][t])
-        print(SS[t],avg_forb_norm[0][t],avg_forb_norm[1][t],avg_forb_norm[2][t],avg_forb_norm[3][t],avg_forb_norm[4][t],avg_forb_norm[5][t])     
+        #print(SS[t],avg_forb_norm[0][t],avg_forb_norm[1][t],avg_forb_norm[2][t],avg_forb_norm[3][t],avg_forb_norm[4][t],avg_forb_norm[5][t])
+        print(SS[t],avg_forb_norm[0][t],avg_forb_norm[1][t])     
         print()
     for t in range(len(nL1)): #ss
         #print(SS[t],avg_accuracy[0][t],avg_accuracy[1][t],avg_accuracy[2][t],avg_accuracy[3][t],avg_accuracy[4][t],avg_accuracy[5][t])
         #print()
         print(f"{SS[t]:.4f}", 
-      f"{avg_accuracy[0][t]:.4f}", 
-      f"{avg_accuracy[1][t]:.4f}", 
-      f"{avg_accuracy[2][t]:.4f}", 
-      f"{avg_accuracy[3][t]:.4f}", 
-      f"{avg_accuracy[4][t]:.4f}", 
-      f"{avg_accuracy[5][t]:.4f}")        
+        f"{avg_accuracy[0][t]:.4f}", 
+        f"{avg_accuracy[1][t]:.4f}") 
+      #f"{avg_accuracy[2][t]:.4f}", 
+      #f"{avg_accuracy[3][t]:.4f}", 
+      #f"{avg_accuracy[4][t]:.4f}", 
+      #f"{avg_accuracy[5][t]:.4f}")        
             
     for t in range(len(AS)):
         avg_forb_norm[t].clear()

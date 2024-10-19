@@ -17,6 +17,10 @@ from sgwl import SGWLSA
 from grampa import Grampa
 from REGAL.regal import Regal
 from MDS import MDSGA
+from Grad import grad
+from mcmc.mc import mcAlign
+from Grad.grad import gradMain
+
 #git push -f origin main
 
 #QAP
@@ -44,13 +48,15 @@ folderall = 'data3_'
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
 
-foldernames = [ 'netscience']
-n_G = [379]
-iters =1
+#foldernames = [ 'dblp']
+#n_G = [9916]
+iters =2
 percs = [(i+1)/10 for i in range(0,10)]
-#percs =[0.5]
-tun=[1,2,3,4,5,6,7]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+#percs =[0.9]
+#tun=[1,2,3,4,5,6,7]
+#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+tun=[8,9]
+tuns=["Grad","mcmc"]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
@@ -98,6 +104,7 @@ for k in range(0,len(foldernames)):
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_fusbal_spectrum = open(f'{folder1}/fusbal_Tspectrum{tuns[ptun]}.txt', 'w')
                 n_Q = int(perc*G.number_of_nodes())
+                #n_Q=9872
                 print(f'Size of subgraph: {n_Q}')
                 for iter in range(iters):
                     folder_ = f'{folder}/{iter}'
@@ -111,12 +118,12 @@ for k in range(0,len(foldernames)):
                     A = nx.adjacency_matrix(G_Q).todense()
                     QGS=G_Q.number_of_nodes()
                     QGES = G_Q.number_of_edges()
-                    L = np.diag(np.array(np.sum(A, axis = 0)))
-                    eigv_G_Q, _ = linalg.eig(L - A)
-                    idx = eigv_G_Q.argsort()[::]   
-                    eigv_G_Q = eigv_G_Q[idx]
-                    for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
-                    file_real_spectrum.write(f'\n')
+                    #L = np.diag(np.array(np.sum(A, axis = 0)))
+                    #eigv_G_Q, _ = linalg.eig(L - A)
+                    #idx = eigv_G_Q.argsort()[::]   
+                    #eigv_G_Q = eigv_G_Q[idx]
+                    #for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
+                    #file_real_spectrum.write(f'\n')
                     start = time.time()
                     if(tun[ptun]==1):
                         print("Alpine")
@@ -139,6 +146,12 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==7):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==8):
+                        print("GradAlign")
+                        list_of_nodes, forb_norm = gradMain(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==9):
+                        print("mcmc")
+                        list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
                     else:
                         print("NO given algorithm ID")
                         exit()
@@ -155,15 +168,19 @@ for k in range(0,len(foldernames)):
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
                     A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
                     L = np.diag(np.array(np.sum(A, axis = 0)))
-                    eigv_G_pred, _ = linalg.eig(L - A)
-                    idx = eigv_G_pred.argsort()[::]   
-                    eigv_G_pred = eigv_G_pred[idx]
-                    for el in eigv_G_pred: file_fusbal_spectrum.write(f'{el} ')
-                    file_fusbal_spectrum.write(f'\n')
-                    spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
+                    #eigv_G_pred, _ = linalg.eig(L - A)
+                    #idx = eigv_G_pred.argsort()[::]   
+                    #eigv_G_pred = eigv_G_pred[idx]
+                    #for el in eigv_G_pred: file_fusbal_spectrum.write(f'{el} ')
+                    #file_fusbal_spectrum.write(f'\n')
+                    #spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+                    #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1265
+                    spec_norm=0
                     file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
-                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)
+
+                    #file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+                    printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)
                 #if plotall:
                 #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
             print('\n')

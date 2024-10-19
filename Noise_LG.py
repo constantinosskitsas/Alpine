@@ -17,6 +17,8 @@ from sgwl import SGWLSA
 from grampa import Grampa
 from REGAL.regal import Regal
 from MDS import MDSGA
+from mcmc.mc import mcAlign
+from Grad.grad import gradMain
 #git push -f origin main
 
 #QAP
@@ -41,17 +43,21 @@ plotall = False
 folderall = 'data3_'
 
 
-#foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
-#n_G = [ 1133,379, 1004, 327, 712]
-foldernames = [ 'netscience']
-n_G = [ 379]
+foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
+n_G = [ 1133,379, 1004, 327, 712]
+#foldernames = [ 'highschool']
+#n_G = [ 327]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
-tun=[1,2,3,4,5,6]
+#tun=[1,2,3,4,5,6]
+#tun=[8,9]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
-nL=["5","10","15","20","25"]
+#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
+tun=[8]
+tuns=["Grad"]
+#nL=["5","10","15","20","25"]
+nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -89,8 +95,8 @@ for k in range(0,len(foldernames)):
         perc=percs[0]
         for noiseL in nL: 
             for ptun in range(len(tun)): 
-                folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
-                folderDG = f'./{folderall}/{foldernames[k]}raw'
+                folder = f'./{folderall}/{foldernames[k]}{noiseL}/{int(perc*100)}'
+                #folderDG = f'./{folderall}/{foldernames[k]}raw'
                 os.makedirs(f'{experimental_folder}{foldernames[k]}{noiseL}/{int(perc*100)}', exist_ok=True)
                 folder1=f'./{experimental_folder}/{foldernames[k]}{noiseL}/{int(perc*100)}'
                 file_fusbal_results = open(f'{folder1}/NoiseTest_results{tuns[ptun]}.txt', 'w')
@@ -103,8 +109,8 @@ for k in range(0,len(foldernames)):
                 for iter in range(iters):
                     folder_ = f'{folder}/{iter}'
                     folder1_ = f'{folder1}/{iter}'
-                    folderDG_=f'{folderDG}/{noiseL}_{iter}.txt'
-                    G = read_real_graph(n = n_G[k], name_ = folderDG_)
+                    #folderDG_=f'{folderDG}/{noiseL}_{iter}.txt'
+                    #G = read_real_graph(n = n_G[k], name_ = folderDG_)
                     DGS=G.number_of_nodes()
 
 # Get the number of edges
@@ -145,10 +151,17 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==7):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==8):
+                        print("GradAlign")
+                        list_of_nodes, forb_norm = gradMain(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==9):
+                        print("mcmc")
+                        list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
                     else:
                         print("Error")
                         exit()
                     end = time.time()
+                    print(len(list_of_nodes))
                     subgraph = G.subgraph(list_of_nodes)
                     PGS=subgraph.number_of_nodes()
                     PGES = subgraph.number_of_edges()
@@ -165,7 +178,8 @@ for k in range(0,len(foldernames)):
                     eigv_G_pred = eigv_G_pred[idx]
                     for el in eigv_G_pred: file_fusbal_spectrum.write(f'{el} ')
                     file_fusbal_spectrum.write(f'\n')
-                    spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
+                    #spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
+                    spec_norm=0
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     file_fusbal_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
                     printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)

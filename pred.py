@@ -27,6 +27,7 @@ from sinkhorn import sinkhorn,sinkhorn_epsilon_scaling,sinkhorn_knopp,sinkhorn_s
 import warnings
 import ot
 warnings.filterwarnings('ignore')
+from help_functions import read_real_graph, read_list
 def convertToPermHungarian2(M, n, m):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
     P = torch.zeros((n,m), dtype = torch.float64)
@@ -38,7 +39,26 @@ def convertToPermHungarian2(M, n, m):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
-
+def convertToPermHungarian2A(row_ind,col_ind,n, m):
+    P = np.zeros((n,m))
+    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    ans = []
+    for i in range(n):
+        P[row_ind[i]][col_ind[i]] = 1
+        if (row_ind[i] >= n) or (col_ind[i] >= m):
+            continue
+        ans.append((row_ind[i], col_ind[i]))
+    return P, ans
+def convertToPermHungarian2new(row_ind, col_ind, n, m):
+    P = torch.zeros((n,m), dtype = torch.float64)
+    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    ans = []
+    for i in range(n):
+        P[row_ind[i]][col_ind[i]] = 1
+        if (row_ind[i] >= n) or (col_ind[i] >= m):
+            continue
+        ans.append((row_ind[i], col_ind[i]))
+    return P, ans
 
 def standardize_nodes(G):
     mapping = {node: str(node) for node in G.nodes()}
@@ -310,7 +330,7 @@ def convertToPermHungarian(M, n1, n2):
         if (row_ind[i] >= n1) or (col_ind[i] >= n2):
             continue
         ans.append((row_ind[i], col_ind[i]))
-    return P, ans
+    return P, row_ind,col_ind
 
 def convertToPermHungarian1112(M, n, m):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
@@ -464,18 +484,73 @@ def Alpine_pp(A, B, K, niter):
     ones_ = torch.ones(m, dtype = torch.float64)
     ones_augm_ = torch.ones(n+1, dtype = torch.float64)
     ones_augm_[-1] = m-n
-    P1 =K+ 1*(mat_ones - 2*P)   
-    forbnorm = LA.norm(A - C.T@P1@B@P1.T@C, 'fro')**2
-    return P1, forbnorm
+    #mat_ones_np = mat_ones.numpy()
+    #P_np = P.numpy()
+    #P1 =K+ mat_ones_np - 2*P_np   
+    #P2,_ = convertToPermHungarian(K*-1, m, n)
+    #forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
+    #return P1, forbnorm
+    der=0
+    sink=0
+    proj=0
+    start0 = time.time()
+    #file_nodes = f'./data3_/multimanga_Noise15/50/0/nodes.txt'
+    #array_2Acc = [[0 for _ in range(10)] for _ in range(10)]
+    #array_2Frob = [[0 for _ in range(10)] for _ in range(10)]
+
+    #Q_real = read_list(file_nodes)
+    #K=torch.from_numpy(K)
     for i in range(niter):
+        #print()
+        #curr=torch.trace((A - C.T@P@B@P.T@C).T@(A - C.T@P@B@P.T@C)) + torch.trace(K.T@P) - i*torch.trace(P.T@P)
+        #print(curr.item(),end=" ")
         for it in range(1, 11):
+            
+            #start = time.time()
             deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)               
+            #end = time.time()
+            #der=der+(end-start)
+            #start1 = time.time()
             q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            #end1 = time.time()
+            #sink=sink+(end1-start1)
+            #start2 = time.time()
             alpha = 2.0 / float(2.0 + it)                                               
             P[:n, :m] = P[:n, :m] + alpha * (q[:n, :m] - P[:n, :m])
-    P2,_ = convertToPermHungarian(P, m, n)
+            #curr=torch.trace((A - C.T@P@B@P.T@C).T@(A - C.T@P@B@P.T@C)) + torch.trace(K.T@P) - i*torch.trace(P.T@P)
+            #print(curr.item(),end=" ")
+            #end2 = time.time()
+            #proj=proj+end2-start
+            #P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
+           # _, ans=convertToPermHungarian2new(row_ind,col_ind, n, m)
+    #_, ans = convertToPermHungarian2(P, n1, n2)
+            #list_of_nodes = []
+            #for el in ans: list_of_nodes.append(el[1])
+            #tempAcc= np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+            #forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
+            #array_2Acc[i][it-1]=tempAcc
+            #array_2Frob[i][it-1]=forbnorm
+    #start2 = time.time()
+    P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
+    #end2 = time.time()
+    #end0 = time.time()
+    #print("Derivative :", der)
+    #print("Sinkhorn :" ,sink)
+    #print("Projection : ",proj)
+    #print("Hungarian: ",end2-start2)
+    #print("All: ",end0-start0)
+    #start2 = time.time()
     forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
-    return P, forbnorm
+    #end2 = time.time()
+    #print("Frob :",end2-start2)
+
+    #print("Reults ACC")
+    #for row in array_2Acc:
+    #    print(row)
+    #print("Reults Frob")
+    #for row in array_2Frob:
+    #    print(row)
+    return P, forbnorm,row_ind,col_ind
 
 
 def convex_initSM(A, B, K, niter):
@@ -565,7 +640,7 @@ def convex_initSM2(A, B, K, niter,weight):
     forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
     return P, forbnorm
 
-def Alpine(Gq, Gt, mu=1, niter=10, weight=1.0):
+def Alpine(Gq, Gt, mu=1, niter=10, weight=2.0):
     n1 = Gq.number_of_nodes()
     n2 = Gt.number_of_nodes()
     n = max(n1, n2)
@@ -573,7 +648,7 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=1.0):
         Gq.add_node(i)
         Gq.add_edge(i,i)
     for i in range(n2, n):
-       Gt.add_node(i)
+       Gt.add_node(i)            
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
     if (weight==2):
@@ -583,9 +658,9 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=1.0):
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
-    P, forbnorm = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
-    #P=D*-1
-    _, ans = convertToPermHungarian2(D, n1, n2)
+    P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
+    _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
+    #_, ans = convertToPermHungarian2(P, n1, n2)
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm    
