@@ -171,8 +171,7 @@ for k in range(0,len(foldernames)):
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
 
                     printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)
-                #if plotall:
-                #    plotres(eigv_G_Q,eigv_G_pred,eigv_G_fugal)                
+                   
             print('\n')
         print('\n\n')
 
