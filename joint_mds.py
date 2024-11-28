@@ -233,7 +233,7 @@ class JointMDS:
                 a=a,
                 b=b,
                 eps=self.eps,
-                max_iter=10,
+                max_iter=10, 
             )
             time1 += timer() - tic
 

@@ -80,7 +80,7 @@ def gradPMain(Gq, Gt, mu=1, niter=10, weight=1.0):
     alignment_dict_reversed=idx2_dict
     #G1, G2, attr1, attr2, alignment_dict, alignment_dict_reversed, idx1_dict, idx2_dict \
     #    = na_dataloader(args)
-    centrality='khop'
+    centrality='katz'
     #centrality='khop'
     attr1_aug, attr2_aug = augment_attributes(G1, G2,
                                               attr1, attr2,
@@ -94,7 +94,7 @@ def gradPMain(Gq, Gt, mu=1, niter=10, weight=1.0):
 #    str_con_portion = struct_consist_checker(G1, G2, alignment_dict)
 #    att_con_portion = att_consist_checker(G1, G2, attr1, attr2, idx1_dict, idx2_dict, alignment_dict)
 #    feat_avg_diff = feat_diff_checker(attr1_aug, attr2_aug)
-    k_hop=3;hid_dim=100;train_ratio=0.0;
+    k_hop=2;hid_dim=100;train_ratio=0.0;
     GradAlign1 = GradAlign(G1, G2, attr1, attr2, attr1_aug, attr2_aug,k_hop, hid_dim, alignment_dict, alignment_dict_reversed, \
                                       train_ratio, idx1_dict, idx2_dict, alpha = G2.number_of_nodes() / G1.number_of_nodes(), beta = 1)    
     GradAlign1.run_algorithm()

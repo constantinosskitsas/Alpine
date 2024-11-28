@@ -24,7 +24,7 @@ from sinkhorn import sinkhorn,sinkhorn_epsilon_scaling,sinkhorn_knopp,sinkhorn_s
 import warnings
 import ot
 warnings.filterwarnings('ignore')
-os.environ["MKL_NUM_THREADS"] = "40"
+#os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
 from help_functions import read_real_graph, read_list
 def convertToPermHungarian2(M, n, m):
@@ -49,11 +49,24 @@ def convertToPermHungarian2A(row_ind,col_ind,n, m):
     #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     ans = []
     for i in range(n):
-        P[row_ind[i]][col_ind1[i]] = 1
-        if (row_ind[i] >= n) or (col_ind1[i] >= m):
+        P[col_ind[i]][row_ind[i]] = 1
+        if (row_ind[i] >= n) or (col_ind[i] >= m):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
+def convertToPermHungarianmc(row_ind,col_ind,n, m):
+
+    m=max(n,m)
+    P = np.zeros((m,m))
+    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    ans = []
+    for i in range(n):
+        #P[row_ind[i]][col_ind[i]] = 1
+        P[col_ind[i]][row_ind[i]] = 1
+        if (row_ind[i] >= m) or (col_ind[i] >= m):
+            continue
+        #ans.append((row_ind[i], col_ind[i]))
+    return P
 def convertToPermHungarian2new(row_ind, col_ind, n, m):
     P = torch.zeros((n,m), dtype = torch.float64)
     #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
@@ -478,12 +491,13 @@ def Alpine_pp(A, B, K, niter):
         for it in range(1, 11):
             
             #start = time.time()
-            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)               
+            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)
+            #deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) + i*(mat_ones - 2*P)               
             #end = time.time()
             #der=der+(end-start)
             #start1 = time.time()
-            q=sinkhorn(ones_, ones_, deriv[:n, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
-            #q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            #q=sinkhorn(ones_, ones_, deriv[:n, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 500, stopThr = 1e-3) 
             
             
             #q=sinkhorn_stabilized(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
@@ -506,6 +520,7 @@ def Alpine_pp(A, B, K, niter):
             #array_2Acc[i][it-1]=tempAcc
             #array_2Frob[i][it-1]=forbnorm
     #start2 = time.time()
+    #K+mat_ones - 2*P
     P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
     #end2 = time.time()
     #end0 = time.time()
@@ -618,8 +633,6 @@ def convex_initSM2(A, B, K, niter,weight):
 def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
     n1 = Gq.number_of_nodes()
     n2 = Gt.number_of_nodes()
-    print(n1)
-    print(n2)
     n = max(n1, n2)
     for node in nx.isolates(Gq):
         Gq.add_edge(node, node)
@@ -648,9 +661,55 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
     return ans, list_of_nodes, forbnorm    
 
 
+def Fugal_pp(A, B, D, mu, niter, n1):
+    n = len(A)
+    m = len(B)
+    P = torch.ones((n,n), dtype = torch.float64)
+    P=P/n
+    ones = torch.ones(n, dtype = torch.float64)
+    mat_ones = torch.ones((n, n), dtype = torch.float64)
+    reg = 1.0
+    K=mu*D
+    #P=sinkhorn(ones, ones, K, reg, maxIter = 1500, stopThr = 1e-3)
+    #P=torch.zeros((n,n), dtype = torch.float64)
+    for i in range(niter):
+        for it in range(1, 11):
+            #G=  A.T@torch.sign(A @ P- P@B)- torch.sign(A@P-P@B) @ B.T+K+ i*( - 2*P)
+            G=-torch.mm(torch.mm(A.T, P), B)-torch.mm(torch.mm(A, P), B.T)+ K+ i*(mat_ones - 2*P)
+            q = sinkhorn(ones, ones, G, reg, maxIter = 500, stopThr = 1e-3)
+            alpha = 2.0 / float(2.0 + it)
+            P = P + alpha * (q - P)
+    P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
+    P2 = torch.from_numpy(P2)
+    forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
+    return P, forbnorm,row_ind,col_ind
 
 
-
+def Fugal(Gq, Gt, mu=1, niter=10):
+    n1 = Gq.number_of_nodes()
+    n2 = Gt.number_of_nodes()
+    n = max(n1, n2)
+    for node in nx.isolates(Gq):
+        Gq.add_edge(node, node)
+    for node in nx.isolates(Gt):
+        Gt.add_edge(node, node)
+    for i in range(n1, n):
+        Gq.add_node(i)
+        Gq.add_edge(i,i)
+    for i in range(n2, n):
+       Gt.add_node(i)            
+    A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
+    F1 = feature_extraction(Gq)
+    F2 = feature_extraction(Gt)
+    D = eucledian_dist(F1,F2,n)
+    #print(D)
+    P, forbnorm,row_ind,col_ind = Fugal_pp(A, B, mu,D, niter,n1)
+    _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
+   # _, ans = convertToPermHungarian2(P, n1, n2)
+    list_of_nodes = []
+    for el in ans: list_of_nodes.append(el[1])
+    return ans, list_of_nodes, forbnorm 
 
 
 

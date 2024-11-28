@@ -23,8 +23,21 @@ from mcmc.tools import evaluate, read_tex_graph, create_align_graph, \
     print_run_time,cal_degree_dict
 
 from mcmc.DW import netmf
-from pred import convertToPermHungarian2A
+from pred import convertToPermHungarianmc
 from numpy import linalg as LA
+
+def convertToPermHungarian2(row_ind,col_ind, n, m):
+    P= np.zeros((n,m))
+    ans = []
+    #print(len(row_ind),len(col_ind),n,m)
+    for i in range(n):
+        P[row_ind[i]][col_ind[i]] = 1
+        #print(row_ind[i],col_ind[i])
+        if (row_ind[i] >= n) or (col_ind[i] >= m):
+            continue
+        ans.append((row_ind[i], col_ind[i]))
+    return P, ans
+
 def CenaExtractNodeFeature(g,layers):
     g_degree_dict = cal_degree_dict(list(g.nodes()), g, layers)
     g_nodes = [i for i in range(len(g))]
@@ -232,6 +245,8 @@ def run_immnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,
                     rate=0.01,r_rate=0,fast=False):
     #path1 = r"dataset/{}/{}_G1_degree_feature.npy".format(dataname, dataname)
     #path2 = r"dataset/{}/{}_G2_degree_feature.npy".format(dataname, dataname)
+    A = nx.to_numpy_array(g1)
+    B = nx.to_numpy_array(g2)
     if False:#os.path.exists(path1):
         embed1 = np.load(path1)
         embed2 = np.load(path2)
@@ -276,7 +291,7 @@ def run_immnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,
         #print(list_of_nodes)
     list_of_nodes2_sorted=[]
     #print(len(g1.nodes))
-    for i in range(len(g2.nodes)):
+    for i in range(len(g1.nodes)):
         list_of_nodes2_sorted.append(i)
     #for i in range
     m=len(list_of_nodes)
@@ -284,10 +299,9 @@ def run_immnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,
     n1=max(m,n)
     n2=min(m,n)
     copy_list_of_nodes=list_of_nodes.copy()
-    P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,copy_list_of_nodes,n1,n1)
+    #P2=convertToPermHungarianmc(list_of_nodes2_sorted,copy_list_of_nodes,n2,n1)
+    P2,_=convertToPermHungarian2(list_of_nodes2_sorted,copy_list_of_nodes,n2,n1)
     #print(list_of_nodes2_sorted)
-    A = nx.to_numpy_array(g1)
-    B = nx.to_numpy_array(g2)
-    
+
     forbnorm = LA.norm(A[:n2,:n2] - (P2@B@P2.T)[:n2,:n2], 'fro')**2 
     return list_of_nodes,forbnorm

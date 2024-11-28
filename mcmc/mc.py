@@ -4,7 +4,12 @@ from mcmc import mmnc_run
 from mcmc.mmnc_run import run_mmnc_align,run_immnc_align
 import copy
 import networkx as nx
-
+import os
+#os.environ["OMP_NUM_THREADS"] = "4"  # OpenMP
+#os.environ["OPENBLAS_NUM_THREADS"] = "4"  # OpenBLAS
+##os.environ["MKL_NUM_THREADS"] = "4"  # Intel MKL
+#os.environ["VECLIB_MAXIMUM_THREADS"] = "4"  # macOS Accelerate
+#os.environ["NUMEXPR_NUM_THREADS"] = "4"  # NumExpr
 #rom dataset.load_alignment_data import load_graph_alignment_datasets
 
 import sys
@@ -116,4 +121,5 @@ def mcAlign(G1, G2,Q_real):
         #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
         #print(f'My accuracy is {accuracy}.')
         #print(f'My frob is {frob}.')
+        #print(len(list_of_nodes))
         return list_of_nodes,frob

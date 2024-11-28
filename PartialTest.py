@@ -1,5 +1,5 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, Alpine
+from pred import convex_initSM, align_SM, align_new, Alpine, Fugal
 from help_functions import read_graph
 import torch
 import scipy
@@ -22,8 +22,8 @@ from mcmc.mc import mcAlign
 from Grad.grad import gradMain
 from GradP.gradp import gradPMain
 
-os.environ["MKL_NUM_THREADS"] = "40"
-torch.set_num_threads(40)
+os.environ["MKL_NUM_THREADS"] = "38"
+torch.set_num_threads(38)
 
 plotall = False
 
@@ -32,6 +32,17 @@ folderall = 'data3_'
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
+
+#foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560"]
+#foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560"]
+#n_G = [ 80,160,320,640,1280,2560]
+#foldernames=["random/subgraph_DG_5120"]
+#foldernames1=["random/subgraph_QG_5120"]
+#n_G = [5120]
+#foldernames = [ 'highschool']
+#n_G = [ 327]
+#foldernames = [  'highschool']
+#n_G = [ 327]
 #n_G = [575,5002,11586]
 #n_GQ = [453,4623,8325]
 #n_GT = [437,4483,7555]
@@ -43,13 +54,14 @@ n_G = [ 1133,379, 1004, 327, 712]
 #9916
 #9871
 iters =50
-percs = [(i+1)/10 for i in range(0,10)]
-
+percs = [(i+1)/10 for i in range(0,9)]
+#percs=[0.8]
 #tun=[1,2,3,4,5,6,7]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Grad","mcmc","GradP"]
-tun=[1,2,3,4,5,6,8,9,10]
+tuns=["Alpine","Cone","Alpine_Dummy","Grampa","Regal","mcmc","GradP"]
+tun=[1,2,4,5,6,9,10]
 #tuns=["Alpine_Dummy","Grad","mcmc"]
-#tun=[4,8,9]
+tuns=["Alpine","AlpineF"]
+tun=[1,4]
 
 
 #tuns=["mcmc"]
@@ -111,9 +123,12 @@ for k in range(0,len(foldernames)):
                 for iter in range(iters):
                     folder_ = f'{folder}/{iter}'
                     folder1_ = f'{folder1}/{iter}'
+                    #folder_=foldernames1[k]
                     os.makedirs(f'{folder1_}', exist_ok=True)
                     file_subgraph = f'{folder_}/subgraph.txt'
                     file_nodes = f'{folder_}/nodes.txt'
+                    #file_subgraph = f'raw_data/random/subgraph_QG_{n_G[k]}.txt'
+                    #file_nodes = f'raw_data/random/nodes_QG_{n_G[k]}.txt'
                     Q_real = read_list(file_nodes)
                     print(f'Reading subgraph at {file_subgraph}')
                     print(f'Reading alignment at {file_nodes}')
@@ -141,7 +156,8 @@ for k in range(0,len(foldernames)):
                         _, list_of_nodes, forb_norm = SGWLSA(G_Q.copy(), G.copy())
                     elif(tun[ptun]==4):
                         print("Alpine_Dummy")
-                        _, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        #_, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
                     elif(tun[ptun]==5):
                         print("Grampa")
                         _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
@@ -152,8 +168,8 @@ for k in range(0,len(foldernames)):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
                     elif(tun[ptun]==8):
-                        print("GradAlign")
-                        list_of_nodes, forb_norm = gradMain(G_Q.copy(), G.copy())
+                        print("fugal")
+                        _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
                     elif(tun[ptun]==9):
                         print("mcmc")
                         list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)

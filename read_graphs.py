@@ -78,9 +78,9 @@ def dfs(G, n_Q):
     return list(nx.dfs_preorder_nodes(G, source = source_node))[0:n_Q]    
 
 def generate_data(foldernames, n_G, iters, percs,alg):
-    n=10240
+    n=80
     #for k in range(len(foldernames)):
-    for k in range(1):
+    for n in n_G:
         #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         G = read_real_graph(n, name_ = f'./raw_data/random/subgraph_DG_{n}.txt')
         print(n, G)
@@ -203,14 +203,16 @@ percs = [(i+1)/10 for i in range(9,10)]
 percs=[0.5]
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
 #generate_data_noise(foldernames, n_G, iters, percs,"RW")
+n_G = [80, 160, 320, 640, 1280, 2560,5120]
+n_G=[80]
 generate_data(foldernames, n_G, iters, percs,"RW")
 #generate_LGN("highschool",327,iters,25)
 n=80
-for i in range(0):
-    G = nx.erdos_renyi_graph(10240, 0.1)
-    file_subgraph = open(f'raw_data/random/subgraph_DG_10240.txt','w')
-    for edge in G.edges():
-        file_subgraph.write(f"{edge[0]} {edge[1]}\n")
-    print(n)
-    n=n*2
+#for i in range(0,1):
+##    G = nx.erdos_renyi_graph(n, 0.1)
+#    file_subgraph = open(f'raw_data/random/subgraph_DG_{n}.txt','w')
+#    for edge in G.edges():
+#        file_subgraph.write(f"{edge[0]} {edge[1]}\n")
+#    print(n)
+#    n=n*2
     

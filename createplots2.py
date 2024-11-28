@@ -113,17 +113,26 @@ iso_=[]
 time = []
 isocounter=0
 SS=[10,20,30,40,50,60,70,80,90]
-
+SS=[10,20,30,40,50,60]
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 nL1=["5","10","15","20","25"]
+nL=["_Noise5"]
+nL1=["5"]
+#nL=["80","160","320","640","1280","2560"]
+#nL1=["5","10","15","20","25"]
 #DS=["arenas"]
 DS1=["arenas","netscience","multimanga","highschool","voles"]
-
+DS1=["arenas","netscience"]
+#DS1=["netscience","highschool"]
 DS = ['_419/arenas', '_419/netscience', '_419/multimanga', '_419/highschool', '_419/voles']
-DS = ['_448/arenas', '_448/netscience', '_448/multimanga', '_448/highschool', '_448/voles']
+DS = ['_54/arenas', '_54/netscience', '_54/multimanga', '_54/highschool', '_54/voles']
+DS = ['_58/arenas','_58/netscience']
 
+#DS=['_34/random/subgraph_DG_']
 AS=["Cone","Grampa","Regal","SGWL"]
-AS=["Grad"]
+AS=["Alpine_Dummy","Alpine","Cone","GradP","Grampa","mcmc","Regal","SGWL"]
+AS=["Alpine","AlpineF"]
+
 avg_forb_norm = [[] for _ in range(len(AS))]
 avg_accuracy = [[] for _ in range(len(AS))]
 avg_spec_norm = [[] for _ in range(len(AS))]
@@ -139,11 +148,12 @@ folderall_ = 'data3_/res'
 
 u=0
 for j in range(len(DS)):    
-    for i in nL:#SS before
+    for i in SS:#SS before
         u=0
         for t in AS:
             at=DS[j]
-            with open(f'{folderall_}/{at}{i}/50/NoiseTest_results{t}.txt', 'r') as file:
+            #with open(f'{folderall_}/{at}{i}/50/NoiseTest_results{t}.txt', 'r') as file:
+            with open(f'{folderall_}/{at}/{i}/SizeTest_results{t}.txt', 'r') as file:
                 tolerance = 1e-10
                 next(file)
                 for line in file:
@@ -172,18 +182,18 @@ for j in range(len(DS)):
             std_time[u].append(np.std(time)) 
             std_iso[u].append(np.std(iso_))
             u+=1
-            #forb_norm.clear()
-            #accuracy.clear()
-            #spec_norm.clear()
-            #time.clear()
-            #iso_.clear()
-            #isocounter=0
-    print("Dataset: ",DS1[j] )
+            forb_norm.clear()
+            accuracy.clear()
+            spec_norm.clear()
+            time.clear()
+            iso_.clear()
+            isocounter=0
+    print("Dataset: ",DS1[j])
     for aa in range(u):
         print("Algorithm: ",AS[aa])
-        for t in range(len(nL)): #ss
+        for t in range(len(SS)): #ss
             #print(nL1[t],avg_forb_norm[aa][t],std_forb_norm[aa][t],avg_accuracy[aa][t],std_accuracy[aa][t],avg_spec_norm[aa][t],std_spec_norm[aa][t],avg_time[aa][t],std_time[aa][t])
-            print(nL1[t],avg_forb_norm[aa][t],avg_accuracy[aa][t])
+            print(SS[t],avg_forb_norm[aa][t],avg_accuracy[aa][t],avg_time[aa][t])
 
     for t in range(len(AS)):
     #for t in range(0):

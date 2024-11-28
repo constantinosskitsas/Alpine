@@ -20,29 +20,27 @@ from MDS import MDSGA
 from mcmc.mc import mcAlign
 from Grad.grad import gradMain
 from GradP.gradp import gradPMain
-
-
-os.environ["MKL_NUM_THREADS"] = "40"
-torch.set_num_threads(540)
+os.environ["MKL_NUM_THREADS"] = "30"
+torch.set_num_threads(30)
 
 plotall = False
 
 folderall = 'data3_'
 
 
-foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
-n_G = [ 1133,379, 1004, 327, 712]
+foldernames = [ 'netscience', 'highschool']
+n_G = [ 379 ,327]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
 
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS","Grad"]
+tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","mcmc","GradP"]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
-tun=[1,2,3,4,5,6,7,8,9,10]
-tuns=["Grad"]
-#nL=["5","10","15","20","25"]
+tun=[1,2,3,4,5,6,9,10]
+#tuns=["Grad"]
+nL=["5","10","15","20","25"]
 
-nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+#nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -74,8 +72,9 @@ for k in range(0,len(foldernames)):
         perc=percs[0]
         for noiseL in nL: 
             for ptun in range(len(tun)): 
-                folder = f'./{folderall}/{foldernames[k]}{noiseL}/{int(perc*100)}'
-                #folderDG = f'./{folderall}/{foldernames[k]}raw'
+                #folder = f'./{folderall}/{foldernames[k]}{noiseL}/{int(perc*100)}'
+                folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
+                folderDG = f'./{folderall}/{foldernames[k]}raw'
                 os.makedirs(f'{experimental_folder}{foldernames[k]}{noiseL}/{int(perc*100)}', exist_ok=True)
                 folder1=f'./{experimental_folder}/{foldernames[k]}{noiseL}/{int(perc*100)}'
                 file_A_results = open(f'{folder1}/NoiseTest_results{tuns[ptun]}.txt', 'w')
@@ -88,8 +87,8 @@ for k in range(0,len(foldernames)):
                 for iter in range(iters):
                     folder_ = f'{folder}/{iter}'
                     folder1_ = f'{folder1}/{iter}'
-                    #folderDG_=f'{folderDG}/{noiseL}_{iter}.txt'
-                    #G = read_real_graph(n = n_G[k], name_ = folderDG_)
+                    folderDG_=f'{folderDG}/{noiseL}_{iter}.txt'
+                    G = read_real_graph(n = n_G[k], name_ = folderDG_)
                     DGS=G.number_of_nodes()
 
 # Get the number of edges

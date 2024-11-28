@@ -1,5 +1,5 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, Alpine
+from pred import convex_initSM, align_SM, align_new, Alpine, Fugal
 from help_functions import read_graph
 import torch
 import scipy
@@ -20,8 +20,9 @@ from MDS import MDSGA
 from GradP import gradp
 from Grad import grad
 from GradP.gradp import gradPMain
-os.environ["MKL_NUM_THREADS"] = "40"
-torch.set_num_threads(40)
+from mcmc.mc import mcAlign
+os.environ["MKL_NUM_THREADS"] = "38"
+torch.set_num_threads(38)
 
 plotall = False
 
@@ -30,15 +31,21 @@ folderall = 'data3_'
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
+#foldernames = [ 'highschool']
+#n_G = [327]
 iters =50
 percs = [(i+1)/10 for i in range(0,10)]
 percs =[0.5]
-tun=[1,2,3,4,5,6,7]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+#tun=[1,2,3,4,5,6,7]
+#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-tun=[1,2,3,4,5,6,7,8,9,10]
-tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+#tun=[1,2,3,4,5,6,7,8,9,10]
+tun=[8]
+#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
+tuns=["Fugal"]
+
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+nL=["_Noise5"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -99,7 +106,7 @@ for k in range(0,len(foldernames)):
                     start = time.time()
                     if(tun[ptun]==1):
                         print("Alpine")
-                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
                     elif(tun[ptun]==2):
                         print("Cone")
                         _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
@@ -118,6 +125,12 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==7):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==8):
+                        print("Fugal")
+                        _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==9):
+                        print("mcmc")
+                        list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
                     elif(tun[ptun]==10):
                         print("GradAlignP")
                         list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
@@ -141,7 +154,8 @@ for k in range(0,len(foldernames)):
                     eigv_G_pred = eigv_G_pred[idx]
                     for el in eigv_G_pred: file_A_spectrum.write(f'{el} ')
                     file_A_spectrum.write(f'\n')
-                    spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
+                    #spec_norm = LA.norm(eigv_G_Q - eigv_G_pred)**2
+                    spec_norm=0
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
                     printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)          
