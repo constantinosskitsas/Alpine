@@ -81,7 +81,7 @@ def gradPMain(Gq, Gt, mu=1, niter=10, weight=1.0):
     #G1, G2, attr1, attr2, alignment_dict, alignment_dict_reversed, idx1_dict, idx2_dict \
     #    = na_dataloader(args)
     centrality='katz'
-    #centrality='khop'
+    centrality='khop'
     attr1_aug, attr2_aug = augment_attributes(G1, G2,
                                               attr1, attr2,
                                               num_attr = 15,

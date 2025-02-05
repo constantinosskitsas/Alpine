@@ -30,9 +30,13 @@ def clean_matrix(matrix):
     
     return matrix
 def convertToPermHungarian2(M, n, m):
+    print(M)
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
+    print(row_ind)
+    print(col_ind)
     #P = torch.zeros((n,m), dtype = torch.float64)
     P= np.zeros((n,m))
+    #P= np.zeros((n,n))
     #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     ans = []
     for i in range(n):
@@ -63,11 +67,11 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
     #    Gq.add_edge(i,i)
     #for i in range(n2, n):
     #    Gt.add_node(i)
-        
 
     A = nx.to_numpy_array(Gq)
     B = nx.to_numpy_array(Gt)
-
+    print(A)
+    print(B)
 
 
 
@@ -100,7 +104,7 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
         **ot_dict,
         'outer_iteration': n
     }
-    
+    mn=0
     
     if mn == 0:
         pairs_idx, pairs_name, pairs_confidence, trans = GwGt.direct_graph_matching(
@@ -113,7 +117,7 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
         )
     #pairs = np.array(pairs_name)[::-1].T
     cost_matrix=trans*1
-    cost_matrix=clean_matrix(cost_matrix)
+    #cost_matrix=clean_matrix(cost_matrix)
     P2,_ = convertToPermHungarian2(cost_matrix, n1, n2)
 
     forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2

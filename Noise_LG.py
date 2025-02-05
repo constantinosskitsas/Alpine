@@ -1,5 +1,5 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, Alpine
+from pred import convex_initSM, align_SM, align_new, Alpine,Fugal
 from help_functions import read_graph
 import torch
 import scipy
@@ -37,7 +37,8 @@ percs =[0.5]
 tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","mcmc","GradP"]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal"]
 tun=[1,2,3,4,5,6,9,10]
-#tuns=["Grad"]
+tuns=["Fugal"]
+tun=[8]
 nL=["5","10","15","20","25"]
 
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
@@ -130,8 +131,11 @@ for k in range(0,len(foldernames)):
                         print("MDS")
                         _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
                     elif(tun[ptun]==8):
-                        print("GradAlign")
-                        list_of_nodes, forb_norm = gradMain(G_Q.copy(), G.copy())
+                        print("fugal")
+                        _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
+                    #elif(tun[ptun]==8):
+                    #    print("GradAlign")
+                    #    list_of_nodes, forb_norm = gradMain(G_Q.copy(), G.copy())
                     elif(tun[ptun]==9):
                         print("mcmc")
                         list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)

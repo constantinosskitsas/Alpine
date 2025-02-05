@@ -1,5 +1,5 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, Alpine
+from pred import convex_initSM, align_SM, align_new, Alpine,Fugal
 from help_functions import read_graph
 import torch
 import scipy
@@ -41,14 +41,16 @@ tuns=["Alpine","Cone","Alpine_Dummy","Grampa","Regal","Grad","mcmc"]
 tun=[1,2,4,5,6,8,9]
 #tuns=["Alpine_Dummy","Grad","mcmc"]
 #tun=[4,8,9]
-tuns=["GradP"]
-tun=[10]
-n_G = [1043]
-n_GQ = [1043]
-n_GT = [1043]
+tuns=["Alpine","SGWL","Alpine_Dummy"]
+tun=[1,3,4]
+tuns=["Alpine"]
+tun=[1]
+n_G = [5]
+n_GQ = [4]
+n_GT = [4]
 
 
-foldernames = ['twn']
+foldernames = ['petros']
 
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
@@ -71,7 +73,8 @@ QGES=0
 PGS=0
 PGES=0         
 for k in range(0,len(foldernames)):
-        G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+        #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+        G=read_real_graph(n = n_G[k], name_ = f'./raw_data/petros.txt')
         print(G)
         DGS=G.number_of_nodes()
 
@@ -87,18 +90,19 @@ for k in range(0,len(foldernames)):
                 file_A_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
                 file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 
-                file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
-                file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
-                n_Q = int(perc*G.number_of_nodes())
+                #file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
+                #file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
+                #n_Q = int(perc*G.number_of_nodes())
                 n_Q=n_GQ[k]#9872
                 #n_Q = 4623
                 print(f'Size of subgraph: {n_Q}')
                 for iter in range(iters):
-                    folder_ = f'{folder}/{iter}'
-                    folder1_ = f'{folder1}/{iter}'
-                    os.makedirs(f'{folder1_}', exist_ok=True)
-                    file_subgraph = f'{folder_}/subgraph.txt'
-                    file_nodes = f'{folder_}/nodes.txt'
+                    #folder_ = f'{folder}/{iter}'
+                    #folder1_ = f'{folder1}/{iter}'
+                    #os.makedirs(f'{folder1_}', exist_ok=True)
+                    #file_subgraph = f'{folder_}/subgraph.txt'
+                    file_subgraph=f'./raw_data/{foldernames[k]}1.txt'
+                    file_nodes = f'./raw_data/{foldernames[k]}2.txt'
                     Q_real = read_list(file_nodes)
                     print(f'Reading subgraph at {file_subgraph}')
                     print(f'Reading alignment at {file_nodes}')
@@ -117,7 +121,7 @@ for k in range(0,len(foldernames)):
                     start = time.time()
                     if(tun[ptun]==1):
                         print("Alpine")
-                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
+                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=0,weight=2)
                     elif(tun[ptun]==2):
                         print("Cone")
                         _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
@@ -145,6 +149,9 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==10):
                         print("GradAlignP")
                         list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
+                    elif(tun[ptun]==11):
+                        print("fugal")
+                        _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
                     else:
                         print("NO given algorithm ID")
                         exit()
@@ -157,8 +164,8 @@ for k in range(0,len(foldernames)):
                     if(forb_norm==0):
                         isomorphic=True
                     time_diff = end - start
-                    file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
-                    for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
+                    #file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
+                    #for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
                     A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
                     L = np.diag(np.array(np.sum(A, axis = 0)))
 

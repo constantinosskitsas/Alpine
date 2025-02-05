@@ -22,8 +22,8 @@ from mcmc.mc import mcAlign
 from Grad.grad import gradMain
 from GradP.gradp import gradPMain
 
-os.environ["MKL_NUM_THREADS"] = "38"
-torch.set_num_threads(38)
+os.environ["MKL_NUM_THREADS"] = "30"
+torch.set_num_threads(30)
 
 plotall = False
 
@@ -32,10 +32,11 @@ folderall = 'data3_'
 
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
 n_G = [ 1133,379, 1004, 327, 712]
-
-#foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560"]
-#foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560"]
-#n_G = [ 80,160,320,640,1280,2560]
+foldernames = [  'netscience']
+n_G = [  379]
+foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560","random/subgraph_DG_5120"]
+foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560","random/subgraph_QG_5120"]
+n_G = [ 80,160,320,640,1280,2560,5120]
 #foldernames=["random/subgraph_DG_5120"]
 #foldernames1=["random/subgraph_QG_5120"]
 #n_G = [5120]
@@ -50,25 +51,26 @@ n_G = [ 1133,379, 1004, 327, 712]
 #foldernames = [ 'male','route','sp']
 #n_G = [575]
 #n_G=[5003]
-#foldernames = ['tw']
+foldernames = ['facebook']
 #9916
 #9871
-iters =50
+iters =1
 percs = [(i+1)/10 for i in range(0,9)]
-#percs=[0.8]
+percs=[0.1]
 #tun=[1,2,3,4,5,6,7]
-tuns=["Alpine","Cone","Alpine_Dummy","Grampa","Regal","mcmc","GradP"]
-tun=[1,2,4,5,6,9,10]
+tuns=["Alpine","Cone","Alpine_Dummy","Grampa","Regal","Fugal","mcmc","GradP"]
+tun=[1,2,4,5,6,8,9,10]
 #tuns=["Alpine_Dummy","Grad","mcmc"]
-tuns=["Alpine","AlpineF"]
-tun=[1,4]
+tuns=["Fugal"]
+tun=[8]
 
-
-#tuns=["mcmc"]
-#tun = [9]
+#tun = [1,8,10]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-  
-#n_G = [9916]
+#tuns=["Alpine"]
+#tun=[4,8]
+
+#tun = [1]
+n_G = [4039]
 #n_GQ = [9872]
 #n_GT = [9872]
 
@@ -118,7 +120,7 @@ for k in range(0,len(foldernames)):
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
                 n_Q = int(perc*G.number_of_nodes())
                 #n_Q=n_GQ[k]#9872
-                #n_Q = 4623
+                n_Q = 1034 
                 print(f'Size of subgraph: {n_Q}')
                 for iter in range(iters):
                     folder_ = f'{folder}/{iter}'
@@ -156,8 +158,7 @@ for k in range(0,len(foldernames)):
                         _, list_of_nodes, forb_norm = SGWLSA(G_Q.copy(), G.copy())
                     elif(tun[ptun]==4):
                         print("Alpine_Dummy")
-                        _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=1)
-                        #_, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
+                        _, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
                     elif(tun[ptun]==5):
                         print("Grampa")
                         _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
@@ -195,6 +196,7 @@ for k in range(0,len(foldernames)):
 
 
                     accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+                    #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1000
                     #len(Q_real)
                     spec_norm=0
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')

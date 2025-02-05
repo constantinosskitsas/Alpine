@@ -24,8 +24,8 @@ from sinkhorn import sinkhorn,sinkhorn_epsilon_scaling,sinkhorn_knopp,sinkhorn_s
 import warnings
 import ot
 warnings.filterwarnings('ignore')
-#os.environ["MKL_NUM_THREADS"] = "40"
-torch.set_num_threads(40)
+os.environ["MKL_NUM_THREADS"] = "30"
+torch.set_num_threads(30)
 from help_functions import read_real_graph, read_list
 def convertToPermHungarian2(M, n, m):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
@@ -253,7 +253,7 @@ def convex_init(A, B, D, mu, niter, n1):
             
             G = (torch.mm(torch.mm(A.T, A), P) - torch.mm(torch.mm(A.T, P), B) - torch.mm(torch.mm(A, P), B.T) + torch.mm(torch.mm(P, B), B.T))/2 + mu*D + i*(mat_ones - 2*P)
             #G=-torch.mm(torch.mm(A.T, P), B)-torch.mm(torch.mm(A, P), B.T)+ K+ i*(mat_ones - 2*P)
-            q = sinkhorn(ones, ones, G, reg, maxIter = 1500, stopThr = 1e-05)
+            q = sinkhorn(ones, ones, G, reg, maxIter = 500, stopThr = 1e-03)
             
             #q = ot.sinkhorn(ones, ones, G, reg, numItermax = 1000, stopThr = 1e-5)
 
@@ -451,7 +451,7 @@ def predict_alignment(queries, targets, mu = 2, niter = 15):
         times.append(t2 - t1)
     return mapping, times
 
-def Alpine_pp(A, B, K, niter):
+def Alpine_pp(A, B, K, niter,A1):
 
     n = len(A)
     m = len(B)
@@ -459,7 +459,8 @@ def Alpine_pp(A, B, K, niter):
     for i in range(n):
         C_p[i,i] = 1
     C = C_p[:,:n]
-    P = torch.ones((m,m), dtype = torch.float64)
+    P = torch.rand((n,m), dtype = torch.float64)
+    #P = torch.ones((m,m), dtype = torch.float64)
     P = P/m
     ones = torch.ones(m, dtype = torch.float64)
     reg = 1.0
@@ -483,29 +484,35 @@ def Alpine_pp(A, B, K, niter):
     #array_2Frob = [[0 for _ in range(10)] for _ in range(10)]
 
     #Q_real = read_list(file_nodes)
-    K=torch.from_numpy(K)
+    #K=torch.from_numpy(K)*0.1
+    niter*10
+    q=0
     for i in range(niter):
         #print()
         #curr=torch.trace((A - C.T@P@B@P.T@C).T@(A - C.T@P@B@P.T@C)) + torch.trace(K.T@P) - i*torch.trace(P.T@P)
         #print(curr.item(),end=" ")
-        for it in range(1, 11):
+        for it in range(1, 100):
             
             #start = time.time()
-            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K+ i*(mat_ones - 2*P)
+            #if (it<4):
+            #    deriv=-torch.mm(torch.mm(A1.T, P), B)-torch.mm(torch.mm(A1, P), B.T)+ K+ i*(mat_ones - 2*P)
+            #    q=sinkhorn(ones_, ones_, deriv, reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            #    alpha = 2.0 / float(2.0 + it)                                               
+            #    P = P + alpha * (q - P)
+            #else:
+            deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) +K*0+ i*(mat_ones - 2*P)
+            if it==1:
+                print(deriv)
             #deriv = -2*C@A.T@C.T@P@B-2*C@A@C.T@P@B.T+2*C@(C.T@P@B@P.T@C@C.T@P@B.T+C.T@P@B.T@P.T@C@C.T@P@B) + i*(mat_ones - 2*P)               
-            #end = time.time()
-            #der=der+(end-start)
-            #start1 = time.time()
-            #q=sinkhorn(ones_, ones_, deriv[:n, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
-            q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 500, stopThr = 1e-3) 
-            
+            if it%10==1: q=sinkhorn(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            alpha = (2 / float(2 + it) )                                             
+            P[:n, :m] = P[:n, :m] + alpha * (q[:n, :m] - P[:n, :m])
             
             #q=sinkhorn_stabilized(ones_augm_, ones_, deriv[:n+1, :m], reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
             #end1 = time.time()
             #sink=sink+(end1-start1)
             #start2 = time.time()
-            alpha = 2.0 / float(2.0 + it)                                               
-            P[:n, :m] = P[:n, :m] + alpha * (q[:n, :m] - P[:n, :m])
+                
             #curr=torch.trace((A - C.T@P@B@P.T@C).T@(A - C.T@P@B@P.T@C)) + torch.trace(K.T@P) - i*torch.trace(P.T@P)
             #print(curr.item(),end=" ")
             #end2 = time.time()
@@ -521,7 +528,12 @@ def Alpine_pp(A, B, K, niter):
             #array_2Frob[i][it-1]=forbnorm
     #start2 = time.time()
     #K+mat_ones - 2*P
+    print(P)
     P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
+    
+    print(row_ind)
+    print(col_ind)
+    print(P2)
     #end2 = time.time()
     #end0 = time.time()
     #print("Derivative :", der)
@@ -531,6 +543,13 @@ def Alpine_pp(A, B, K, niter):
     #print("All: ",end0-start0)
     #start2 = time.time()
     forbnorm = LA.norm(A - C.T@P2@B@P2.T@C, 'fro')**2
+    result = P2@B.numpy()@P2.T
+    forbnorm = LA.norm(A[:n,:n] - result[:n,:n], 'fro')**2
+    print("one")
+    print(A[:n,:n])
+    print("two")
+    print(result[:n,:n])
+
     #end2 = time.time()
     #print("Frob :",end2-start2)
 
@@ -540,6 +559,49 @@ def Alpine_pp(A, B, K, niter):
     #print("Reults Frob")
     #for row in array_2Frob:
     #    print(row)
+    return P, forbnorm,row_ind,col_ind
+
+
+def Alpine_pp_new(A, B, K, niter,A1):
+
+    m = len(A)
+    n = len(B)
+    I_p = torch.zeros((m,m+1),dtype = torch.float64)
+    for i in range(m):
+        I_p[i,i] = 1
+    Pi = torch.rand((m+1,n), dtype = torch.float64)
+    Pi = Pi/n
+    reg = 1.0
+    mat_ones = torch.ones((m+1, n), dtype = torch.float64)
+
+    ones_ = torch.ones(n, dtype = torch.float64)
+    ones_augm_ = torch.ones(m+1, dtype = torch.float64)
+    ones_augm_[-1] = n-m
+
+    for i in range(niter):
+        for it in range(1, 100):
+
+            #deriv = -2*I_p@A.T@I_p.T@P@B-2*I_p@A@I_p.T@P@B.T+2*I_p@(I_p.T@P@B@P.T@I_p@I_p.T@P@B.T+I_p.T@P@B.T@P.T@I_p@I_p.T@P@B) +K*0+ i*(mat_ones - 2*P)
+            deriv=-4*I_p.T@(A-I_p@Pi@B@Pi.T@I_p.T)@I_p@Pi@B
+
+            q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
+            alpha = (2 / float(2 + it) )                                             
+            Pi = Pi + alpha * (q - Pi)
+    print(Pi)
+    P2,row_ind,col_ind = convertToPermHungarian(Pi, n, m)
+    
+    print(row_ind)
+    print(col_ind)
+    print(P2)
+
+    forbnorm = LA.norm(A - I_p.T@P2@B@P2.T@I_p, 'fro')**2
+    result = P2@B.numpy()@P2.T
+    forbnorm = LA.norm(A[:n,:n] - result[:n,:n], 'fro')**2
+    print("one")
+    print(A[:n,:n])
+    print("two")
+    print(result[:n,:n])
+
     return P, forbnorm,row_ind,col_ind
 
 
@@ -620,7 +682,7 @@ def convex_initSM2(A, B, K, niter,weight):
             #               -2*(C_p.T@B@P.T@C_p@P@B.T+C_p.T@P@B.T@P.T@C_p@P@B+C_p@P@B.T@P.T@C_p.T@P@B+C_p@P@B@P.T@C_p.T@P@B.T)
             #               +2*(C_p@C_p.T@P@B@P.T@C_p@C_p.T@P@B.T+C_p@C_p.T@P@B.T@P.T@C_p@C_p.T@P@B))
             #print(f'Derivative of forb. norm:\n{deriv}\n\n')
-            q = sinkhorn(ones, ones, deriv, reg, maxIter = 1500, stopThr = 1e-5)
+            q = sinkhorn(ones, ones, deriv, reg, maxIter = 500, stopThr = 1e-3)
             alpha = 2.0 / float(2.0 + it)
             P = P + alpha * (q - P)
             #print(f'perm. matrix in {it}th iteration:\n{P}')
@@ -642,18 +704,24 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
         Gq.add_node(i)
         Gq.add_edge(i,i)
     for i in range(n2, n):
-       Gt.add_node(i)            
+       Gt.add_node(i)      
+    mu=0.1     
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
+    #weight=1
     if (weight==2):
         F1 = feature_extraction1(Gq)
-        F2 = feature_extraction1(Gt)  
+        F2 = feature_extraction1(Gt) 
     else:
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
-    #print(D)
-    P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
+    D[-1:]*=0
+    print((D))
+
+    #P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
+   # P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter,A)
+    P, forbnorm,row_ind,col_ind = Alpine_pp_new(A[:n1,:n1], B, mu*D, niter,A)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
    # _, ans = convertToPermHungarian2(P, n1, n2)
     list_of_nodes = []
@@ -664,20 +732,23 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
 def Fugal_pp(A, B, D, mu, niter, n1):
     n = len(A)
     m = len(B)
-    P = torch.ones((n,n), dtype = torch.float64)
+    #P = torch.ones((n,n), dtype = torch.float64)
+    P = torch.rand((n,n), dtype = torch.float64)
     P=P/n
     ones = torch.ones(n, dtype = torch.float64)
     mat_ones = torch.ones((n, n), dtype = torch.float64)
     reg = 1.0
-    K=mu*D
+    K=mu*D*1
     #P=sinkhorn(ones, ones, K, reg, maxIter = 1500, stopThr = 1e-3)
     #P=torch.zeros((n,n), dtype = torch.float64)
     for i in range(niter):
         for it in range(1, 11):
             #G=  A.T@torch.sign(A @ P- P@B)- torch.sign(A@P-P@B) @ B.T+K+ i*( - 2*P)
-            G=-torch.mm(torch.mm(A.T, P), B)-torch.mm(torch.mm(A, P), B.T)+ K+ i*(mat_ones - 2*P)
-            q = sinkhorn(ones, ones, G, reg, maxIter = 500, stopThr = 1e-3)
-            alpha = 2.0 / float(2.0 + it)
+            G=-torch.mm(torch.mm(A.T, P), B)-torch.mm(torch.mm(A, P), B.T)#+ K*0+ i*(mat_ones - 2*P)
+            q = sinkhorn(ones, ones, G, reg, maxIter = 1500, stopThr = 1e-5)
+            if (it==5):
+                print(G)
+            alpha = 2 / float(2 + it)
             P = P + alpha * (q - P)
     P2,row_ind,col_ind = convertToPermHungarian(P, m, n)
     P2 = torch.from_numpy(P2)
@@ -702,6 +773,8 @@ def Fugal(Gq, Gt, mu=1, niter=10):
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
     F1 = feature_extraction(Gq)
     F2 = feature_extraction(Gt)
+    #F1 = feature_extraction1(Gq)
+    #F2 = feature_extraction1(Gt)
     D = eucledian_dist(F1,F2,n)
     #print(D)
     P, forbnorm,row_ind,col_ind = Fugal_pp(A, B, mu,D, niter,n1)
