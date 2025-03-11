@@ -579,10 +579,10 @@ def Alpine_pp_new(A, B, K, niter,A1):
     ones_augm_[-1] = n-m
 
     for i in range(niter):
-        for it in range(1, 100):
+        for it in range(1, 10):
 
             #deriv = -2*I_p@A.T@I_p.T@P@B-2*I_p@A@I_p.T@P@B.T+2*I_p@(I_p.T@P@B@P.T@I_p@I_p.T@P@B.T+I_p.T@P@B.T@P.T@I_p@I_p.T@P@B) +K*0+ i*(mat_ones - 2*P)
-            deriv=-4*I_p.T@(A-I_p@Pi@B@Pi.T@I_p.T)@I_p@Pi@B
+            deriv=-4*I_p.T@(A-I_p@Pi@B@Pi.T@I_p.T)@I_p@Pi@B+K+ i*(mat_ones - 2*P)
 
             q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-5) 
             alpha = (2 / float(2 + it) )                                             
