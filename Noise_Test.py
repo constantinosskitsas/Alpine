@@ -39,13 +39,13 @@ percs =[0.5]
 #tun=[1,2,3,4,5,6,7]
 #tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
 #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-#tun=[1,2,3,4,5,6,7,8,9,10]
-tun=[8]
-#tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS"]
-tuns=["Fugal"]
+tun=[1,2,3,4,5,6,7,8,9,10]
+#tun=[8]
+tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","MDS","Fugal","MC","gradP"]
+#tuns=["Fugal"]
 
 nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-nL=["_Noise5"]
+#nL=["_Noise5"]
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
