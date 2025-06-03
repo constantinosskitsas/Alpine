@@ -1,4 +1,4 @@
-
+from memory_profiler import profile
 import numpy as np
 import sklearn.metrics.pairwise
 import scipy.sparse as sps
@@ -11,6 +11,7 @@ import unsup_align, embedding
 import networkx as nx
 from numpy import linalg as LA
 import scipy
+
 def convertToPermHungarian(M, n1, n2):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
     n = len(M)
@@ -23,6 +24,7 @@ def convertToPermHungarian(M, n1, n2):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
+
 def align_embeddings(embed1, embed2, adj1=None, adj2=None, struc_embed=None, struc_embed2=None):
     # Step 2: Align Embedding Spaces
     corr = None

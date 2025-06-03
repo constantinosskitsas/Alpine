@@ -7,6 +7,8 @@ import time
 import os
 import sys
 import scipy.sparse as sps
+from memory_profiler import profile
+
 #original code from https://github.com/GemsLab/REGAL
 try:
     import cPickle as pickle
@@ -20,6 +22,7 @@ from REGAL.alignments import get_embeddings,get_embeddings1, get_embedding_simil
 import scipy
 from numpy import linalg as LA
 import torch
+
 def convertToPermHungarian2(M, n, m):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
     #P = torch.zeros((n,m), dtype = torch.float64)
@@ -59,6 +62,7 @@ def G_to_Adj1(G1, G2):
     adj[size1:, size1:] = G2
     
     return adj
+
 def G_to_Adj(G1, G2):
     # adj1 = sps.kron([[1, 0], [0, 0]], G1)
     # adj2 = sps.kron([[0, 0], [0, 1]], G2)
@@ -130,6 +134,7 @@ def Regal(Gq,Gt):
 
 # Should take in a file with the input graph as edgelist (REGAL_args['input)
 # Should save representations to REGAL_args['output
+
 def learn_representations(adj, REGAL_args):
     graph = Graph(adj, node_attributes=REGAL_args['attributes'])
     max_layer = REGAL_args['untillayer']

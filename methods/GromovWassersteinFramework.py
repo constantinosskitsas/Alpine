@@ -9,6 +9,7 @@ import numpy as np
 from scipy.sparse import csr_matrix
 from scipy.special import softmax
 from typing import List, Dict, Tuple
+from memory_profiler import profile
 
 
 def node_distribution_similarity(p_s: np.ndarray, p_t: np.ndarray, values: list=None) -> np.ndarray:

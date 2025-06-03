@@ -1,0 +1,2 @@
+DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic 
+713 0 0 0 0 19.6468827043885 0 0 19.6468827043885 0 0

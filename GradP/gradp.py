@@ -19,6 +19,8 @@ import math
 import matplotlib.pyplot as plt
 from pred import convertToPermHungarian2A
 from numpy import linalg as LA
+from memory_profiler import profile
+
 def set_seeds(n):
     seed = int(n)
     random.seed(seed)

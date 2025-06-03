@@ -1,0 +1,594 @@
+737
+Created new folder: ./data3_/res/_737
+set seed: 5
+Making ./raw_data/netscience.txt graph...
+Done ./raw_data/netscience.txt Peter...
+Graph with 379 nodes and 914 edges
+Size of subgraph: 37
+Reading subgraph at ./data3_/netscience/10/0/subgraph.txt
+Reading alignment at ./data3_/netscience/10/0/nodes.txt
+Making ./data3_/netscience/10/0/subgraph.txt graph...
+Done ./data3_/netscience/10/0/subgraph.txt Peter...
+Graph with 37 nodes and 69 edges
+GradAlignP
+This is khop binning version 
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    390.9 MiB    390.9 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    390.9 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    390.9 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    390.9 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    390.9 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    390.9 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    391.1 MiB      0.2 MiB         915               for u, v, data in G.edges(data=True):
+   801    391.1 MiB      0.0 MiB         914                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    391.1 MiB    391.1 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    391.1 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    391.1 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    391.1 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    391.1 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    391.1 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    391.1 MiB      0.0 MiB          70               for u, v, data in G.edges(data=True):
+   801    391.1 MiB      0.0 MiB          69                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    421.0 MiB    421.0 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    421.0 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    421.0 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    421.0 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    421.0 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    421.0 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    421.0 MiB      0.0 MiB         915               for u, v, data in G.edges(data=True):
+   801    421.0 MiB      0.0 MiB         914                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    421.0 MiB    421.0 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    421.0 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    421.0 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    421.0 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    421.0 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    421.0 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    421.0 MiB      0.0 MiB          70               for u, v, data in G.edges(data=True):
+   801    421.0 MiB      0.0 MiB          69                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+----  Alpine ----
+----> Forb_norm: 138.0
+----> Accuracy: 0.011857707509881422
+----> Spec_norm: 0
+----> Time: 2.8193159103393555
+----> Isomorphic: False
+
+
+
+
+
+

@@ -14,6 +14,9 @@ import math
 import os
 import scipy
 from numpy import linalg as LA
+from memory_profiler import profile
+
+
 def convertToPermHungarian(M, n1, n2):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
     n = len(M)
@@ -25,6 +28,7 @@ def convertToPermHungarian(M, n1, n2):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
+
 def Grampa(Gq,Gt):
     print("Grampa")
     #os.environ["MKL_NUM_THREADS"] = "10"

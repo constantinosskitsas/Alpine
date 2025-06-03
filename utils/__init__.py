@@ -10,7 +10,7 @@
 import io
 import numpy as np
 import collections
-
+from memory_profiler import profile
 
 def load_vectors(fname, maxload=200000, norm=True, center=False, verbose=True):
     if verbose:

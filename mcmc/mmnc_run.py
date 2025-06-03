@@ -4,6 +4,7 @@ import json
 import os
 import random
 from time import time
+from memory_profiler import profile
 
 import numpy as np
 from scipy import sparse
@@ -240,6 +241,7 @@ def run_mmnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,metric=[],train_ratio=0.04,r_ra
     #
 
 #@print_run_time
+
 def run_immnc_align(g1,g2,ans_dict,K_de=3,K_nei=3,
                     metric=[],train_ratio=0.04,niters=10,
                     rate=0.01,r_rate=0,fast=False):

@@ -1,0 +1,283 @@
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    19   5906.7 MiB   5906.7 MiB           1   @profile
+    20                                         def convertToPermHungarian(M, n1, n2):
+    21   5906.7 MiB      0.0 MiB           1       row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
+    22   5906.7 MiB      0.0 MiB           1       n = len(M)
+    23   5906.7 MiB      0.0 MiB           1       P = np.zeros((n, n))
+    24   5906.7 MiB      0.0 MiB           1       ans = []
+    25   5946.5 MiB      2.1 MiB        9917       for i in range(n):
+    26   5946.5 MiB     37.6 MiB        9916           P[row_ind[i]][col_ind[i]] = 1
+    27   5946.5 MiB      0.0 MiB        9916           if (row_ind[i] >= n1) or (col_ind[i] >= n2):
+    28                                                     continue
+    29   5946.5 MiB      0.1 MiB        9916           ans.append((row_ind[i], col_ind[i]))
+    30   5946.5 MiB      0.0 MiB           1       return P, ans
+
+
+Filename: /home/konstantinos/Alpine/grampa.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    19   5945.9 MiB   5945.9 MiB           1   @profile
+    20                                         def convertToPermHungarian(M, n1, n2):
+    21   5945.9 MiB      0.0 MiB           1       row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
+    22   5945.9 MiB      0.0 MiB           1       n = len(M)
+    23   5945.9 MiB      0.0 MiB           1       P = np.zeros((n, n))
+    24   5945.9 MiB      0.0 MiB           1       ans = []
+    25   5985.6 MiB      1.6 MiB        9917       for i in range(n):
+    26   5985.6 MiB     38.1 MiB        9916           P[row_ind[i]][col_ind[i]] = 1
+    27   5985.6 MiB      0.0 MiB        9916           if (row_ind[i] >= n1) or (col_ind[i] >= n2):
+    28                                                     continue
+    29   5985.6 MiB      0.0 MiB        9872           ans.append((row_ind[i], col_ind[i]))
+    30   5985.6 MiB      0.0 MiB           1       return P, ans
+
+
+Filename: /home/konstantinos/Alpine/grampa.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    31    608.6 MiB    608.6 MiB           1   @profile
+    32                                         def Grampa(Gq,Gt):
+    33    608.6 MiB      0.0 MiB           1       print("Grampa")
+    34                                             #os.environ["MKL_NUM_THREADS"] = "10"
+    35    608.6 MiB      0.0 MiB           1       eta=0.2
+    36    608.6 MiB      0.0 MiB           1       n1 = len(Gq.nodes())
+    37    608.6 MiB      0.0 MiB           1       n2 = len(Gt.nodes())
+    38    608.6 MiB      0.0 MiB           1       n = max(n1, n2)
+    39    608.6 MiB      0.0 MiB           1       nmin= min(n1,n2)
+    40    608.6 MiB      0.0 MiB          45       for i in range(n1, n):
+    41    608.6 MiB      0.0 MiB          44           Gq.add_node(i)
+    42    608.6 MiB      0.0 MiB          44           Gq.add_edge(i,i)
+    43    608.6 MiB      0.0 MiB           1       for i in range(n2, n):
+    44                                                 Gt.add_node(i)
+    45   1362.0 MiB    753.4 MiB           1       A = nx.to_numpy_array(Gq)
+    46   2112.5 MiB    750.5 MiB           1       B = nx.to_numpy_array(Gt)
+    47                                         
+    48   2895.6 MiB    783.1 MiB           1       l,U =eigh(A)
+    49   3646.0 MiB    750.3 MiB           1       mu,V = eigh(B)
+    50                                             
+    51   3646.0 MiB      0.0 MiB           1       l = np.array([l])
+    52   3646.0 MiB      0.0 MiB           1       mu = np.array([mu])
+    53   3646.0 MiB      0.0 MiB           1       dtype = np.float32
+    54                                           #Eq.4
+    55   4396.6 MiB    750.6 MiB           1       coeff = 1.0/((l.T - mu)**2 + eta**2)
+    56                                           #Eq. 3
+    57                                         
+    58   4405.7 MiB      9.1 MiB           1       coeff = coeff * (U.T @ np.ones((n,n)) @ V)
+    59                                             
+    60                                           
+    61                                           #coeff = coeff * (U.T @ K @ V)
+    62   5156.5 MiB    750.8 MiB           1       X = U @ coeff @ V.T
+    63   5156.5 MiB      0.0 MiB           1       Xt = X.T
+    64   5906.7 MiB    750.2 MiB           1       Xt=X*1
+    65   5946.7 MiB     40.0 MiB           1       P2,_ = convertToPermHungarian(Xt, n, n)
+    66                                         
+    67   5945.9 MiB     -0.8 MiB           1       forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
+    68   5985.6 MiB     39.7 MiB           1       P_perm,ans = convertToPermHungarian(Xt, n1, n2)
+    69   5985.6 MiB      0.0 MiB           1       list_of_nodes = []
+    70   5985.6 MiB      0.0 MiB        9873       for el in ans: list_of_nodes.append(el[1])
+    71   5985.6 MiB      0.0 MiB           1       return ans, list_of_nodes, forbnorm
+
+
+----  Grampa ----
+----> Forb_norm: 126690.00000000001
+----> Accuracy: 0.03636363636363636
+----> Spec_norm: 0
+----> Time: 302.0261559486389
+----> Isomorphic: False
+
+
+
+
+
+
+Filename: PartialTest.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    28    386.0 MiB    386.0 MiB           1   @profile
+    29                                         def RunExp():
+    30    386.0 MiB      0.0 MiB           1       plotall = False
+    31                                         
+    32    386.0 MiB      0.0 MiB           1       folderall = 'data3_'
+    33                                         
+    34                                         
+    35    386.0 MiB      0.0 MiB           1       foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
+    36    386.0 MiB      0.0 MiB           1       n_G = [ 1133,379, 1004, 327, 712]
+    37                                             #foldernames = [  'douban']
+    38                                             #n_G = [  3906]
+    39    386.0 MiB      0.0 MiB           1       foldernames = [ 'netscience']
+    40    386.0 MiB      0.0 MiB           1       n_G = [ 379]
+    41                                             #foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560","random/subgraph_DG_5120"]
+    42                                             #foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560","random/subgraph_QG_5120"]
+    43                                             #n_G = [ 80,160,320,640,1280,2560,5120]
+    44                                             #foldernames=["random/subgraph_DG_5120"]
+    45                                             #foldernames1=["random/subgraph_QG_5120"]
+    46                                             #n_G = [5120]
+    47                                             #foldernames = [ 'highschool']
+    48                                             #n_G = [ 327]
+    49                                             #foldernames = [  'highschool']
+    50                                             #n_G = [ 327]
+    51                                             #n_G = [575,5002,11586]
+    52                                             #n_GQ = [453,4623,8325]
+    53                                             #n_GT = [437,4483,7555]
+    54                                         
+    55                                             #foldernames = [ 'male','route','sp']
+    56                                             #n_G = [575]
+    57                                             #n_G=[5003]
+    58                                             #foldernames = ['facebook']
+    59                                             #9916
+    60                                             #9871
+    61    386.0 MiB      0.0 MiB           1       iters =1
+    62    386.0 MiB      0.0 MiB          12       percs = [(i+1)/10 for i in range(0,9)]
+    63    386.0 MiB      0.0 MiB           1       percs=[0.1]
+    64                                             #tun=[1,2,3,4,5,6,7]
+    65    386.0 MiB      0.0 MiB           1       tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Fugal","mcmc","GradP"]
+    66    386.0 MiB      0.0 MiB           1       tun=[1,2,3,4,5,6,8,9,10]
+    67    386.0 MiB      0.0 MiB           1       tuns=["Grampa"]
+    68    386.0 MiB      0.0 MiB           1       tun=[5]
+    69                                             #tuns=["Alpine_Dummy","Grad","mcmc"]
+    70                                         
+    71                                         
+    72                                             #tun = [1,8,10]
+    73                                             #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+    74                                             #tuns=["Alpine"]
+    75                                             #tun=[4,8]
+    76                                         
+    77                                             #tun = [1]
+    78                                             #n_G = [4039]
+    79                                             #n_GQ = [9872]
+    80                                             #n_GT = [9872]
+    81                                         
+    82                                             #n_G = [1043]
+    83                                             #n_GQ = [1000]
+    84                                             #n_GT = [1000]
+    85                                         
+    86                                             #foldernames = ['sp']
+    87    386.0 MiB      0.0 MiB           1       foldernames = [ 'dblp']
+    88    386.0 MiB      0.0 MiB           1       n_G = [9916]
+    89    795.5 MiB      0.0 MiB           2       def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
+    90    795.5 MiB      0.0 MiB           1           print('---- ',name, '----')
+    91    795.5 MiB      0.0 MiB           1           print('----> Forb_norm:', forb_norm)
+    92    795.5 MiB      0.0 MiB           1           print('----> Accuracy:', accuracy)
+    93    795.5 MiB      0.0 MiB           1           print('----> Spec_norm:', spec_norm)
+    94    795.5 MiB      0.0 MiB           1           print('----> Time:', time_diff)
+    95    795.5 MiB      0.0 MiB           1           print('----> Isomorphic:', isomorphic)
+    96    795.5 MiB      0.0 MiB           1           print()     
+    97                                         
+    98    386.0 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/'
+    99    386.0 MiB      0.0 MiB           1       new_id = generate_new_id(get_max_previous_id(experimental_folder))
+   100    386.0 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/_{new_id}/'   
+   101    386.0 MiB      0.0 MiB           1       DGS=0
+   102    386.0 MiB      0.0 MiB           1       DGES=0
+   103    386.0 MiB      0.0 MiB           1       QGS=0
+   104    386.0 MiB      0.0 MiB           1       QGES=0
+   105    386.0 MiB      0.0 MiB           1       PGS=0
+   106    386.0 MiB      0.0 MiB           1       PGES=0         
+   107    795.5 MiB      0.0 MiB           2       for k in range(0,len(foldernames)):
+   108    406.8 MiB     20.8 MiB           1               G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+   109    406.8 MiB      0.0 MiB           1               print(G)
+   110    406.8 MiB      0.0 MiB           1               DGS=G.number_of_nodes()
+   111                                         
+   112                                             # Get the number of edges
+   113    406.8 MiB      0.0 MiB           1               DGES = G.number_of_edges()
+   114                                                     
+   115                                                     #perc=percs[0]
+   116    795.5 MiB      0.0 MiB           2               for perc in percs: 
+   117    795.5 MiB      0.0 MiB           2                   for ptun in range(len(tun)): 
+   118    406.8 MiB      0.0 MiB           1                       folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
+   119    406.8 MiB      0.0 MiB           1                       os.makedirs(f'{experimental_folder}{foldernames[k]}/{int(perc*100)}', exist_ok=True)
+   120    406.8 MiB      0.0 MiB           1                       folder1=f'./{experimental_folder}/{foldernames[k]}/{int(perc*100)}'
+   121    406.8 MiB      0.0 MiB           1                       file_A_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
+   122    406.8 MiB      0.0 MiB           1                       file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
+   123                                                             
+   124    406.8 MiB      0.0 MiB           1                       file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
+   125    406.8 MiB      0.0 MiB           1                       file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
+   126    406.8 MiB      0.0 MiB           1                       n_Q = int(perc*G.number_of_nodes())
+   127                                                             #n_Q=n_GQ[k]#9872
+   128    406.8 MiB      0.0 MiB           1                       n_Q = 9872 
+   129    406.8 MiB      0.0 MiB           1                       print(f'Size of subgraph: {n_Q}')
+   130    795.5 MiB      0.0 MiB           2                       for iter in range(iters):
+   131    406.8 MiB      0.0 MiB           1                           folder_ = f'{folder}/{iter}'
+   132    406.8 MiB      0.0 MiB           1                           folder1_ = f'{folder1}/{iter}'
+   133                                                                 #folder_ = f'{folder}'
+   134    406.8 MiB      0.0 MiB           1                           os.makedirs(f'{folder1_}', exist_ok=True)
+   135    406.8 MiB      0.0 MiB           1                           file_subgraph = f'{folder_}/subgraph.txt'
+   136    406.8 MiB      0.0 MiB           1                           file_nodes = f'{folder_}/nodes.txt'
+   137                                                                 #file_subgraph = f'raw_data/random/subgraph_QG_{n_G[k]}.txt'
+   138                                                                 #file_nodes = f'raw_data/random/nodes_QG_{n_G[k]}.txt'
+   139    406.8 MiB      0.0 MiB           1                           Q_real = read_list(file_nodes)
+   140    406.8 MiB      0.0 MiB           1                           print(f'Reading subgraph at {file_subgraph}')
+   141    406.8 MiB      0.0 MiB           1                           print(f'Reading alignment at {file_nodes}')
+   142    425.5 MiB     18.7 MiB           1                           G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
+   143    577.4 MiB    151.9 MiB           1                           A = nx.adjacency_matrix(G_Q).todense()
+   144    577.4 MiB      0.0 MiB           1                           print(G_Q)
+   145                                                                 #print(Q_real)
+   146    577.4 MiB      0.0 MiB           1                           QGS=G_Q.number_of_nodes()
+   147    577.4 MiB      0.0 MiB           1                           QGES = G_Q.number_of_edges()
+   148                                                                 #L = np.diag(np.array(np.sum(A, axis = 0)))
+   149                                                                 #eigv_G_Q, _ = linalg.eig(L - A)
+   150                                                                 #idx = eigv_G_Q.argsort()[::]   
+   151                                                                 #eigv_G_Q = eigv_G_Q[idx]
+   152                                                                 #for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
+   153                                                                 #file_real_spectrum.write(f'\n')
+   154    577.4 MiB      0.0 MiB           1                           start = time.time()
+   155    577.4 MiB      0.0 MiB           1                           if(tun[ptun]==1):
+   156                                                                     print("Alpine")
+   157                                                                     _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
+   158    577.4 MiB      0.0 MiB           1                           elif(tun[ptun]==2):
+   159                                                                     print("Cone")
+   160                                                                     _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
+   161    577.4 MiB      0.0 MiB           1                           elif(tun[ptun]==3):
+   162                                                                     print("SGWL")
+   163                                                                     _, list_of_nodes, forb_norm = SGWLSA(G_Q.copy(), G.copy())
+   164    577.4 MiB      0.0 MiB           1                           elif(tun[ptun]==4):
+   165                                                                     print("Alpine_Dummy")
+   166                                                                     _, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
+   167    577.4 MiB      0.0 MiB           1                           elif(tun[ptun]==5):
+   168    577.4 MiB      0.0 MiB           1                               print("Grampa")
+   169    656.6 MiB     79.2 MiB           1                               _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
+   170                                                                 elif(tun[ptun]==6):
+   171                                                                     print("Regal")
+   172                                                                     _, list_of_nodes, forb_norm = Regal(G_Q.copy(), G.copy())      
+   173                                                                 elif(tun[ptun]==7):
+   174                                                                     print("MDS")
+   175                                                                     _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+   176                                                                 elif(tun[ptun]==8):
+   177                                                                     print("fugal")
+   178                                                                     _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
+   179                                                                 elif(tun[ptun]==9):
+   180                                                                     print("mcmc")
+   181                                                                     list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
+   182                                                                 elif(tun[ptun]==10):
+   183                                                                     print("GradAlignP")
+   184                                                                     list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
+   185                                                                 else:
+   186                                                                     print("NO given algorithm ID")
+   187                                                                     exit()
+   188    656.6 MiB      0.0 MiB           1                           end = time.time()
+   189    656.6 MiB      0.0 MiB           1                           subgraph = G.subgraph(list_of_nodes)
+   190                                                                 
+   191    656.6 MiB      0.0 MiB           1                           PGS=subgraph.number_of_nodes()
+   192    656.6 MiB      0.0 MiB           1                           PGES = subgraph.number_of_edges()
+   193    656.6 MiB      0.0 MiB           1                           isomorphic=False
+   194    656.6 MiB      0.0 MiB           1                           if(forb_norm==0):
+   195                                                                     isomorphic=True
+   196    656.6 MiB      0.0 MiB           1                           time_diff = end - start
+   197    656.6 MiB      0.0 MiB           1                           file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
+   198    656.6 MiB      0.0 MiB        9873                           for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
+   199    756.8 MiB    100.2 MiB           1                           A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
+   200    795.2 MiB     38.4 MiB           1                           L = np.diag(np.array(np.sum(A, axis = 0)))
+   201                                         
+   202                                         
+   203                                                                 #   accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+   204    795.5 MiB      0.2 MiB           1                           accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1265
+   205                                                                 #len(Q_real)
+   206    795.5 MiB      0.0 MiB           1                           spec_norm=0
+   207    795.5 MiB      0.0 MiB           1                           file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+   208    795.5 MiB      0.0 MiB           1                           printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)            
+   209    795.5 MiB      0.0 MiB           1                   print('\n')
+   210    795.5 MiB      0.0 MiB           1               print('\n\n')
+
+

@@ -11,6 +11,8 @@ from methods import DataIO, GromovWassersteinGraphToolkit as GwGt
 import networkx as nx
 import torch
 from numpy import linalg as LA
+from memory_profiler import profile
+
 # methods = ['gwl', 's-gwl-3', 's-gwl-2', 's-gwl-1']
 cluster_num = [2, 4, 8]
 partition_level = [3, 2, 1]
@@ -29,11 +31,9 @@ def clean_matrix(matrix):
     matrix[np.isneginf(matrix)] = max_finite_value
     
     return matrix
+
 def convertToPermHungarian2(M, n, m):
-    print(M)
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    print(row_ind)
-    print(col_ind)
     #P = torch.zeros((n,m), dtype = torch.float64)
     P= np.zeros((n,m))
     #P= np.zeros((n,n))
@@ -57,6 +57,7 @@ def convertToPermHungarian(M, n1, n2):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
+
 def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
     n1 = len(Gq.nodes())
     n2 = len(Gt.nodes())
@@ -70,11 +71,6 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
 
     A = nx.to_numpy_array(Gq)
     B = nx.to_numpy_array(Gt)
-    print(A)
-    print(B)
-
-
-
     p_s, cost_s, idx2node_s = DataIO.extract_graph_info(
         Gq, weights=None)
 

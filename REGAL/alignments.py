@@ -5,7 +5,7 @@ from scipy.sparse import csr_matrix, coo_matrix
 from sklearn.neighbors import KDTree
 import scipy.sparse as sp
 from scipy.spatial.distance import cosine
-
+from memory_profiler import profile
 
 def get_embedding_similarities(embed, embed2=None, sim_measure="euclidean", num_top=None):
     n_nodes, dim = embed.shape

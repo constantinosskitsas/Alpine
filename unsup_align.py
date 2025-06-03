@@ -15,7 +15,7 @@ import ot
 import numpy as np
 from scipy import sparse
 import utils
-
+from memory_profiler import profile
 
 def objective(X, Y, R, n=5):
     Xn, Yn = X[:n], Y[:n]

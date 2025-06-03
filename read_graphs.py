@@ -68,7 +68,28 @@ def random_walk_(G, n_Q):
             current_node=random.choice(subgraph_nodes)
             stuck_counter=0
     return subgraph_nodes
+def dfs_topK(G, n_Q, n_G1, n_G2): 
+    source_node = random.randint(0, G.number_of_nodes() - 1)
 
+    # Compute DFS expansions
+    G1 = list(nx.dfs_preorder_nodes(G, source=source_node))[:n_G1]
+    G2 = list(nx.dfs_preorder_nodes(G, source=source_node))[:n_G2]
+
+    # Generate G3 using DFS: Start from G1, avoid G2, and stay connected
+    G3 = set(G1)
+    stack = [node for node in G1]  # Stack for DFS behavior
+
+    while len(G3) < n_Q:
+        if not stack:  # If no more nodes to explore, stop
+            break
+        current = stack.pop()  # DFS: Remove the last-added node (LIFO order)
+
+        for neighbor in G.neighbors(current):
+            if neighbor not in G3 and neighbor not in G2:  # Ensure G3 avoids G2
+                G3.add(neighbor)
+                stack.append(neighbor)  # Push to stack for DFS behavior
+
+    return list(G1), list(G2), list(G3)
 def dfs(G, n_Q):
     while True:
         selected_sources = set()

@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_cluster import random_walk
 from sklearn.linear_model import LogisticRegression
+from memory_profiler import profile
 
 import torch_geometric.transforms as T
 from torch_geometric.nn import SAGEConv, GraphConv, GCNConv, GINConv, global_mean_pool
@@ -79,7 +80,7 @@ class GradAlign:
         self.cea_mode = False
         self.fast_mode = False
         #self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # disable temporarily because of error
-
+    
     def run_algorithm(self):  # anchor is not considered yet
 
         iteration = 0

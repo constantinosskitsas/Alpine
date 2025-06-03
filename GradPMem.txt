@@ -1,0 +1,1216 @@
+691
+Created new folder: ./data3_/res/_691
+set seed: 5
+Making ./raw_data/dblp.txt graph...
+Done ./raw_data/dblp.txt Peter...
+Graph with 9916 nodes and 44808 edges
+Size of subgraph: 9872
+Reading subgraph at ./data3_/dblp/10/0/subgraph.txt
+Reading alignment at ./data3_/dblp/10/0/nodes.txt
+Making ./data3_/dblp/10/0/subgraph.txt graph...
+Done ./data3_/dblp/10/0/subgraph.txt Peter...
+Graph with 9872 nodes and 39561 edges
+GradAlignP
+This is khop binning version 
+Filename: /home/konstantinos/Alpine/GradP/data.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   588    642.6 MiB    642.6 MiB           1   @profile
+   589                                         def augment_attributes(Gs, Gt, attr_s, attr_t, num_attr, version = "katz", khop = 1, penalty = 0.1, normalize = True): 
+   590    642.6 MiB      0.0 MiB           1       Gs_nodes = list(Gs.nodes())
+   591    642.6 MiB      0.0 MiB           1       Gt_nodes = list(Gt.nodes())
+   592    642.6 MiB      0.0 MiB           1       print(f"This is {version} binning version ")
+   593    642.6 MiB      0.0 MiB           1       if version == "katz":   
+   594                                                 attdict_s = nx.katz_centrality_numpy(Gs,
+   595                                                                                       alpha = 0.01,
+   596                                                                                       beta = 1, 
+   597                                                                                       normalized = False)
+   598                                                 attdict_t = nx.katz_centrality_numpy(Gt,
+   599                                                                                       alpha = 0.01,
+   600                                                                                       beta = 1,
+   601                                                                                       normalized = False)
+   602                                                 if min(attdict_s.values())<0:
+   603                                                     print("arnitiko")
+   604                                                     version="khop"
+   605                                                 elif min(attdict_t.values())<0:
+   606                                                     version="khop"
+   607                                                     print("arnitiko")
+   608    642.6 MiB      0.0 MiB           1       elif version == "eigenvector":
+   609                                         
+   610                                                 attdict_s = nx.eigenvector_centrality(Gs, max_iter = 500, tol = 1e-8)
+   611                                                 attdict_t = nx.eigenvector_centrality(Gt, max_iter = 500, tol = 1e-8)
+   612                                             
+   613    642.6 MiB      0.0 MiB           1       elif version == "pagerank":
+   614                                                 attdict_s = nx.pagerank(Gs,
+   615                                                                         alpha = 0.85,
+   616                                                                         max_iter = 100)
+   617                                                 attdict_t = nx.pagerank(Gt,
+   618                                                                         alpha = 0.85,
+   619                                                                         max_iter = 100)
+   620                                             
+   621    642.6 MiB      0.0 MiB           1       elif version == "betweenness":
+   622                                                 attdict_s = nx.betweenness_centrality(Gs)
+   623                                                 attdict_t = nx.betweenness_centrality(Gt)
+   624                                             
+   625    642.6 MiB      0.0 MiB           1       elif version == "closeness":
+   626                                                 attdict_s = nx.closeness_centrality(Gs)
+   627                                                 attdict_t = nx.closeness_centrality(Gt)
+   628                                         
+   629                                                 
+   630    642.6 MiB      0.0 MiB           1       if version == "khop":
+   631                                                 
+   632    643.2 MiB      0.6 MiB       29752           attdict_s = {key : len(nx.single_source_shortest_path_length
+   633    643.2 MiB      0.0 MiB        9916                               (Gs, source = key, cutoff=1))                     
+   634    643.2 MiB      0.0 MiB        9917                        for key in Gs_nodes}
+   635    643.4 MiB      0.3 MiB       29620           attdict_t = {key : len(nx.single_source_shortest_path_length
+   636    643.4 MiB      0.0 MiB        9872                                  (Gt, source = key, cutoff=1))
+   637    643.4 MiB      0.0 MiB        9873                        for key in Gt_nodes}
+   638                                         
+   639    644.1 MiB      0.7 MiB       29752           attdict_s_2hop = {key : penalty * len(nx.single_source_shortest_path_length
+   640    644.0 MiB      0.0 MiB        9916                               (Gs, source = key, cutoff=2))
+   641    644.0 MiB      0.0 MiB        9917                        for key in Gs_nodes}        
+   642    644.6 MiB      0.5 MiB       29620           attdict_t_2hop = {key : penalty * len(nx.single_source_shortest_path_length
+   643    644.6 MiB      0.0 MiB        9872                                  (Gt, source = key, cutoff=2))
+   644    644.6 MiB      0.0 MiB        9873                        for key in Gt_nodes}
+   645    644.6 MiB      0.0 MiB           1           dict_seq_2_s = [attdict_s, attdict_s_2hop]
+   646    644.6 MiB      0.0 MiB           1           dict_seq_2_t = [attdict_t, attdict_t_2hop]        
+   647    647.3 MiB      2.7 MiB        9921           attdict_s_2hop = reduce(lambda d1,d2: {k: d1.get(k,0)+d2.get(k,0) for k in set(d1)|set(d2)}, dict_seq_2_s)
+   648    648.0 MiB      0.7 MiB        9877           attdict_t_2hop = reduce(lambda d1,d2: {k: d1.get(k,0)+d2.get(k,0) for k in set(d1)|set(d2)}, dict_seq_2_t)
+   649                                                         
+   650    648.3 MiB      0.2 MiB       29752           attdict_s_3hop = {key : penalty**2 * len(nx.single_source_shortest_path_length
+   651    648.3 MiB      0.1 MiB        9916                               (Gs, source = key, cutoff=3))
+   652    648.3 MiB      0.0 MiB        9917                     for key in Gs_nodes}
+   653    648.6 MiB      0.2 MiB       29620           attdict_t_3hop = {key : penalty**2 * len(nx.single_source_shortest_path_length
+   654    648.6 MiB      0.1 MiB        9872                                  (Gt, source = key, cutoff=3))
+   655    648.6 MiB      0.0 MiB        9873                        for key in Gt_nodes}
+   656    648.6 MiB      0.0 MiB           1           dict_seq_3_s = [attdict_s_2hop, attdict_s_3hop]
+   657    648.6 MiB      0.0 MiB           1           dict_seq_3_t = [attdict_t_2hop, attdict_t_3hop]        
+   658    649.9 MiB      1.3 MiB        9921           attdict_s_3hop = reduce(lambda d1,d2: {k: d1.get(k,0)+d2.get(k,0) for k in set(d1)|set(d2)}, dict_seq_3_s)
+   659    650.5 MiB      0.6 MiB        9877           attdict_t_3hop = reduce(lambda d1,d2: {k: d1.get(k,0)+d2.get(k,0) for k in set(d1)|set(d2)}, dict_seq_3_t)
+   660                                                 
+   661    650.5 MiB      0.0 MiB           1           if khop == 2:
+   662                                                     attdict_s = attdict_s_2hop
+   663                                                     attdict_t = attdict_t_2hop
+   664                                                     
+   665    650.5 MiB      0.0 MiB           1           elif khop == 3:
+   666                                                     attdict_s = attdict_s_3hop
+   667                                                     attdict_t = attdict_t_3hop
+   668                                                 
+   669    650.5 MiB      0.0 MiB           1           elif khop >= 4:
+   670                                                     print("khop should be set in range [1,3]")
+   671                                                     
+   672                                         
+   673                                             # Consistent normalize
+   674    650.5 MiB      0.0 MiB           1       if normalize == True:        
+   675                                                 attdict_s = {key: (value - min(attdict_s.values())) / (max(attdict_s.values())-min(attdict_s.values()))
+   676                                                              for key, value in attdict_s.items()}
+   677                                                 attdict_t = {key: (value - min(attdict_t.values())) / (max(attdict_t.values())-min(attdict_t.values()))
+   678                                                              for key, value in attdict_t.items()}        
+   679                                                 interval = 1 / num_attr
+   680                                                 
+   681    650.5 MiB      0.0 MiB           1       elif normalize == False:
+   682    650.5 MiB      0.0 MiB           1           interval = max(max(attdict_s.values()),max(attdict_t.values())) / num_attr
+   683                                         
+   684    650.5 MiB      0.0 MiB           1       init_np_s = np.zeros((Gs.number_of_nodes(), num_attr))
+   685    650.5 MiB      0.0 MiB           1       init_np_t = np.zeros((Gt.number_of_nodes(), num_attr))
+   686                                         
+   687    650.6 MiB      0.0 MiB        9917       for idx_s, node_s in enumerate(Gs.nodes()):        # assign binning
+   688    650.6 MiB      0.0 MiB        9916           cent_node = attdict_s[node_s]
+   689    650.6 MiB      0.0 MiB        9916           init_np_s[idx_s, int(cent_node / interval) - 1] = 1
+   690                                         
+   691    650.6 MiB      0.0 MiB        9873       for idx_t, node_t in enumerate(Gt.nodes()):
+   692    650.6 MiB      0.0 MiB        9872           cent_node = attdict_t[node_t]
+   693    650.6 MiB      0.0 MiB        9872           init_np_t[idx_t, int(cent_node / interval) - 1] = 1
+   694                                         
+   695    651.8 MiB      1.2 MiB           1       new_attr_s = np.append(attr_s, init_np_s, axis = 1)
+   696    652.7 MiB      1.0 MiB           1       new_attr_t = np.append(attr_t, init_np_t, axis = 1)
+   697                                         
+   698    652.7 MiB      0.0 MiB           1       if len(attr_s[0]) == 1:
+   699    652.7 MiB      0.0 MiB           1           new_attr_s = new_attr_s[:, 1:]
+   700    652.7 MiB      0.0 MiB           1           new_attr_t = new_attr_t[:, 1:]
+   701                                                 
+   702    653.0 MiB      0.2 MiB           1       return new_attr_s, new_attr_t
+
+
+Filename: /home/konstantinos/Alpine/GradP/data.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   580    651.2 MiB    651.2 MiB           1   @profile
+   581                                         def aug_trimming(aug_s, aug_t):
+   582                                             #concat two matrice
+   583    651.2 MiB      0.0 MiB           1       concat_aug = np.concatenate((aug_s, aug_t), axis = 0)
+   584    651.2 MiB      0.0 MiB           1       concat_aug = concat_aug[:,~np.all(concat_aug == 0, axis = 0)]
+   585    651.2 MiB      0.0 MiB           1       aug_s_trimmed = concat_aug[:len(aug_s)]
+   586    651.2 MiB      0.0 MiB           1       aug_t_trimmed = concat_aug[len(aug_s):]
+   587    651.2 MiB      0.0 MiB           1       return aug_s_trimmed, aug_t_trimmed
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    654.5 MiB    654.5 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    654.5 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    654.5 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    654.5 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    654.5 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    654.5 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    654.6 MiB      0.1 MiB       44809               for u, v, data in G.edges(data=True):
+   801    654.6 MiB      0.0 MiB       44808                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    654.6 MiB    654.6 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    654.6 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    654.6 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    654.6 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    654.6 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    654.6 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    654.6 MiB      0.0 MiB       39562               for u, v, data in G.edges(data=True):
+   801    654.6 MiB      0.0 MiB       39561                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/Alpine/GradP/models.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    83    651.2 MiB    651.2 MiB           1       @profile
+    84                                             def run_algorithm(self):  # anchor is not considered yet
+    85                                         
+    86    651.2 MiB      0.0 MiB           1           iteration = 0
+    87                                         
+    88                                                 #Construct GNN
+    89                                         
+    90                                                # model = myGNN_hidden(len(self.att_s.T), hidden_channels=self.hid_channel, num_layers = self.layer)
+    91                                                # model = myGCN(len(self.att_s.T), hidden_channels=self.hid_channel, num_layers = self.layer)
+    92    654.2 MiB      3.0 MiB           2           model = myGIN(len(self.att_s.T),
+    93    651.2 MiB      0.0 MiB           1                         hidden_channels=self.hid_channel, num_layers=self.layer)
+    94    654.4 MiB      0.2 MiB           2           model_aug = myGIN(
+    95    654.2 MiB      0.0 MiB           1               len(self.att_aug_s.T), hidden_channels=self.hid_channel, num_layers=self.layer)
+    96                                         
+    97    654.5 MiB      0.1 MiB           1           model = model.to(self.device)
+    98    654.5 MiB      0.0 MiB           1           model_aug = model_aug.to(self.device)
+    99                                         
+   100    654.5 MiB      0.0 MiB           1           if self.train_ratio == 0:
+   101    654.5 MiB      0.0 MiB           1               seed_list1 = []
+   102    654.5 MiB      0.0 MiB           1               seed_list2 = []
+   103                                                 else:
+   104                                                     seed_list1 = list(np.random.choice(list(self.alignment_dict.keys()), int(
+   105                                                         self.train_ratio * len(self.alignment_dict)), replace=False))
+   106                                                     seed_list2 = [self.alignment_dict[seed_list1[x]]
+   107                                                                   for x in range(len(seed_list1))]
+   108                                                     self.pre_seed_list1 = seed_list1
+   109                                                     self.pre_seed_list2 = seed_list2
+   110                                                     self.G1, self.G2 = seed_link(
+   111                                                         seed_list1, seed_list2, self.G1, self.G2)
+   112                                         
+   113                                                     self.H = self.calculateH(self.gamma)
+   114                                         
+   115    654.6 MiB      0.1 MiB           2           nx.set_edge_attributes(
+   116    654.5 MiB      0.0 MiB           1               self.G1, values=self.default_weight, name='weight')
+   117    654.6 MiB      0.0 MiB           2           nx.set_edge_attributes(
+   118    654.6 MiB      0.0 MiB           1               self.G2, values=self.default_weight, name='weight')
+   119                                         
+   120    654.6 MiB      0.0 MiB           1           index = sorted(list(self.G1.nodes()))
+   121    654.6 MiB      0.0 MiB           1           columns = sorted(list(self.G2.nodes()))
+   122                                         
+   123    654.6 MiB      0.0 MiB           1           start = time.time()
+   124                                         
+   125                                                 # Start iteration
+   126                                         
+   127                                                 while True:
+   128                                         
+   129                                                     #self.attr_norm_s, self.attr_norm_t =self.normalized_attribute(self.G1, self.G2)
+   130                                         
+   131   3581.1 MiB -11857.5 MiB          12               index = list(set(index) - set(seed_list1))
+   132   3581.1 MiB -11857.5 MiB          12               columns = list(set(columns) - set(seed_list2))            
+   133                                                     #index = list(set.union(*[set(self.G1.neighbors(node)) for node in seed_list1])- set(seed_list1))
+   134                                                     #columns = list(set.union(*[set(self.G2.neighbors(node)) for node in seed_list2])- set(seed_list2))
+   135                                                     
+   136   3581.1 MiB -11857.5 MiB          12               seed_n_id_list = seed_list1 + seed_list2
+   137   3581.1 MiB -11857.5 MiB          12               if len(columns) == 0 or len(index) == 0:
+   138                                                         break
+   139   3581.1 MiB -10011.1 MiB          11               if len(self.alignment_dict) == len(seed_list1):
+   140                                                         break
+   141                                                     #print('\n ------ The current iteration : {} ------'.format(iteration))
+   142                                         
+   143   3581.1 MiB -10011.1 MiB          11               if iteration == 0:
+   144                                                         # GNN Embedding Update
+   145    685.5 MiB     30.9 MiB           2                   data_s, x_s, edge_index_s, edge_weight_s = self.convert2torch_data(
+   146    654.6 MiB      0.0 MiB           1                       self.G1, self.att_s)
+   147    716.2 MiB     30.7 MiB           2                   data_t, x_t, edge_index_t, edge_weight_t = self.convert2torch_data(
+   148    685.5 MiB      0.0 MiB           1                       self.G2, self.att_t)
+   149                                         
+   150                                                         # GNN-2
+   151    716.2 MiB    -22.1 MiB           2                   data_aug_s, x_aug_s, edge_index_aug_s, edge_weight_aug_s = self.convert2torch_data(
+   152    716.2 MiB      0.0 MiB           1                       self.G1, self.att_aug_s)
+   153    720.9 MiB      4.8 MiB           2                   data_aug_t, x_aug_t, edge_index_aug_t, edge_weight_aug_t = self.convert2torch_data(
+   154    694.1 MiB      0.0 MiB           1                       self.G2, self.att_aug_t)
+   155                                         
+   156    986.0 MiB    265.0 MiB           2                   embedding1, embedding2 = self.embedding(seed_list1, seed_list2, iteration, self.epochs, x_s,
+   157    720.9 MiB      0.0 MiB           1                                                           edge_index_s, edge_weight_s, x_t, edge_index_t, edge_weight_t, model, data_s, data_t)
+   158   1038.0 MiB     52.0 MiB           2                   embedding_aug1, embedding_aug2 = self.embedding(seed_list1, seed_list2, iteration, self.epochs, x_aug_s, edge_index_aug_s,
+   159    986.0 MiB      0.0 MiB           1                                                                   edge_weight_aug_s, x_aug_t, edge_index_aug_t, edge_weight_aug_t, model_aug, data_aug_s, data_aug_t)
+   160                                         
+   161                                                     # Update graph
+   162                                                     #print('\n start adding a seed nodes')
+   163   3581.1 MiB -10011.1 MiB          11               if iteration == 0:
+   164   2471.4 MiB   1433.4 MiB           2                   seed_list1, seed_list2, S, adj2, S_emb = self.AddSeeds_ver2_init(
+   165   1038.0 MiB      0.0 MiB           1                       embedding1, embedding2, embedding_aug1, embedding_aug2, index, columns, seed_list1, seed_list2, iteration)
+   166                                                     else:
+   167   3581.1 MiB -20758.8 MiB          20                   seed_list1, seed_list2, S, adj2 = self.AddSeeds_ver2(
+   168   3581.1 MiB -10011.1 MiB          10                       S_emb, embedding1, embedding2, embedding_aug1, embedding_aug2, index, columns, seed_list1, seed_list2, iteration)
+   169   3581.1 MiB -11857.5 MiB          11               iteration += 1
+   170                                         
+   171                                                 # Evaluate Performance
+   172                                                 #print("total time : {}sec".format(int(time.time() - start)))
+   173                                                 #print('\n Start evaluation...')
+   174                                                 #self.Evaluation(seed_list1, seed_list2)
+   175                                                 #S_prime, result = self.FinalEvaluation(
+   176                                                 #    S, embedding1, embedding2, seed_list1, seed_list2, self.idx1_dict, self.idx2_dict, adj2)
+   177                                                 #self.normdif_checker(self.att_aug_s, self.att_aug_t,
+   178                                                 #                    embedding_aug1, embedding_aug2)
+   179   1734.8 MiB  -1846.4 MiB           1           return seed_list1,seed_list2
+   180                                                 #return S, S_prime, seed_list1, seed_list2, result
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    982.9 MiB    982.9 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    982.9 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    982.9 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    982.9 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    982.9 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    982.9 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    982.9 MiB      0.0 MiB       44809               for u, v, data in G.edges(data=True):
+   801    982.9 MiB      0.0 MiB       44808                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/miniconda3/lib/python3.8/site-packages/networkx/classes/function.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   680    982.9 MiB    982.9 MiB           1   @profile
+   681                                         def set_edge_attributes(G, values, name=None):
+   682                                             """Sets edge attributes from a given value or dictionary of values.
+   683                                         
+   684                                             .. Warning:: The call order of arguments `values` and `name`
+   685                                                 switched between v1.x & v2.x.
+   686                                         
+   687                                             Parameters
+   688                                             ----------
+   689                                             G : NetworkX Graph
+   690                                         
+   691                                             values : scalar value, dict-like
+   692                                                 What the edge attribute should be set to.  If `values` is
+   693                                                 not a dictionary, then it is treated as a single attribute value
+   694                                                 that is then applied to every edge in `G`.  This means that if
+   695                                                 you provide a mutable object, like a list, updates to that object
+   696                                                 will be reflected in the edge attribute for each edge.  The attribute
+   697                                                 name will be `name`.
+   698                                         
+   699                                                 If `values` is a dict or a dict of dict, it should be keyed
+   700                                                 by edge tuple to either an attribute value or a dict of attribute
+   701                                                 key/value pairs used to update the edge's attributes.
+   702                                                 For multigraphs, the edge tuples must be of the form ``(u, v, key)``,
+   703                                                 where `u` and `v` are nodes and `key` is the edge key.
+   704                                                 For non-multigraphs, the keys must be tuples of the form ``(u, v)``.
+   705                                         
+   706                                             name : string (optional, default=None)
+   707                                                 Name of the edge attribute to set if values is a scalar.
+   708                                         
+   709                                             Examples
+   710                                             --------
+   711                                             After computing some property of the edges of a graph, you may want
+   712                                             to assign a edge attribute to store the value of that property for
+   713                                             each edge::
+   714                                         
+   715                                                 >>> G = nx.path_graph(3)
+   716                                                 >>> bb = nx.edge_betweenness_centrality(G, normalized=False)
+   717                                                 >>> nx.set_edge_attributes(G, bb, "betweenness")
+   718                                                 >>> G.edges[1, 2]["betweenness"]
+   719                                                 2.0
+   720                                         
+   721                                             If you provide a list as the second argument, updates to the list
+   722                                             will be reflected in the edge attribute for each edge::
+   723                                         
+   724                                                 >>> labels = []
+   725                                                 >>> nx.set_edge_attributes(G, labels, "labels")
+   726                                                 >>> labels.append("foo")
+   727                                                 >>> G.edges[0, 1]["labels"]
+   728                                                 ['foo']
+   729                                                 >>> G.edges[1, 2]["labels"]
+   730                                                 ['foo']
+   731                                         
+   732                                             If you provide a dictionary of dictionaries as the second argument,
+   733                                             the entire dictionary will be used to update edge attributes::
+   734                                         
+   735                                                 >>> G = nx.path_graph(3)
+   736                                                 >>> attrs = {(0, 1): {"attr1": 20, "attr2": "nothing"}, (1, 2): {"attr2": 3}}
+   737                                                 >>> nx.set_edge_attributes(G, attrs)
+   738                                                 >>> G[0][1]["attr1"]
+   739                                                 20
+   740                                                 >>> G[0][1]["attr2"]
+   741                                                 'nothing'
+   742                                                 >>> G[1][2]["attr2"]
+   743                                                 3
+   744                                         
+   745                                             The attributes of one Graph can be used to set those of another.
+   746                                         
+   747                                                 >>> H = nx.path_graph(3)
+   748                                                 >>> nx.set_edge_attributes(H, G.edges)
+   749                                         
+   750                                             Note that if the dict contains edges that are not in `G`, they are
+   751                                             silently ignored::
+   752                                         
+   753                                                 >>> G = nx.Graph([(0, 1)])
+   754                                                 >>> nx.set_edge_attributes(G, {(1, 2): {"weight": 2.0}})
+   755                                                 >>> (1, 2) in G.edges()
+   756                                                 False
+   757                                         
+   758                                             For multigraphs, the `values` dict is expected to be keyed by 3-tuples
+   759                                             including the edge key::
+   760                                         
+   761                                                 >>> MG = nx.MultiGraph()
+   762                                                 >>> edges = [(0, 1), (0, 1)]
+   763                                                 >>> MG.add_edges_from(edges)  # Returns list of edge keys
+   764                                                 [0, 1]
+   765                                                 >>> attributes = {(0, 1, 0): {"cost": 21}, (0, 1, 1): {"cost": 7}}
+   766                                                 >>> nx.set_edge_attributes(MG, attributes)
+   767                                                 >>> MG[0][1][0]["cost"]
+   768                                                 21
+   769                                                 >>> MG[0][1][1]["cost"]
+   770                                                 7
+   771                                         
+   772                                             If MultiGraph attributes are desired for a Graph, you must convert the 3-tuple
+   773                                             multiedge to a 2-tuple edge and the last multiedge's attribute value will
+   774                                             overwrite the previous values. Continuing from the previous case we get::
+   775                                         
+   776                                                 >>> H = nx.path_graph([0, 1, 2])
+   777                                                 >>> nx.set_edge_attributes(H, {(u, v): ed for u, v, ed in MG.edges.data()})
+   778                                                 >>> nx.get_edge_attributes(H, "cost")
+   779                                                 {(0, 1): 7}
+   780                                         
+   781                                             """
+   782    982.9 MiB      0.0 MiB           1       if name is not None:
+   783                                                 # `values` does not contain attribute names
+   784    982.9 MiB      0.0 MiB           1           try:
+   785                                                     # if `values` is a dict using `.items()` => {edge: value}
+   786    982.9 MiB      0.0 MiB           1               if G.is_multigraph():
+   787                                                         for (u, v, key), value in values.items():
+   788                                                             try:
+   789                                                                 G[u][v][key][name] = value
+   790                                                             except KeyError:
+   791                                                                 pass
+   792                                                     else:
+   793    982.9 MiB      0.0 MiB           1                   for (u, v), value in values.items():
+   794                                                             try:
+   795                                                                 G[u][v][name] = value
+   796                                                             except KeyError:
+   797                                                                 pass
+   798    982.9 MiB      0.0 MiB           1           except AttributeError:
+   799                                                     # treat `values` as a constant
+   800    982.9 MiB      0.0 MiB       39562               for u, v, data in G.edges(data=True):
+   801    982.9 MiB      0.0 MiB       39561                   data[name] = values
+   802                                             else:
+   803                                                 # `values` consists of doct-of-dict {edge: {attr: value}} shape
+   804                                                 if G.is_multigraph():
+   805                                                     for (u, v, key), d in values.items():
+   806                                                         try:
+   807                                                             G[u][v][key].update(d)
+   808                                                         except KeyError:
+   809                                                             pass
+   810                                                 else:
+   811                                                     for (u, v), d in values.items():
+   812                                                         try:
+   813                                                             G[u][v].update(d)
+   814                                                         except KeyError:
+   815                                                             pass
+
+
+Filename: /home/konstantinos/Alpine/GradP/models.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    83    982.9 MiB    982.9 MiB           1       @profile
+    84                                             def run_algorithm(self):  # anchor is not considered yet
+    85                                         
+    86    982.9 MiB      0.0 MiB           1           iteration = 0
+    87                                         
+    88                                                 #Construct GNN
+    89                                         
+    90                                                # model = myGNN_hidden(len(self.att_s.T), hidden_channels=self.hid_channel, num_layers = self.layer)
+    91                                                # model = myGCN(len(self.att_s.T), hidden_channels=self.hid_channel, num_layers = self.layer)
+    92    982.9 MiB      0.0 MiB           2           model = myGIN(len(self.att_s.T),
+    93    982.9 MiB      0.0 MiB           1                         hidden_channels=self.hid_channel, num_layers=self.layer)
+    94    982.9 MiB      0.0 MiB           2           model_aug = myGIN(
+    95    982.9 MiB      0.0 MiB           1               len(self.att_aug_s.T), hidden_channels=self.hid_channel, num_layers=self.layer)
+    96                                         
+    97    982.9 MiB      0.0 MiB           1           model = model.to(self.device)
+    98    982.9 MiB      0.0 MiB           1           model_aug = model_aug.to(self.device)
+    99                                         
+   100    982.9 MiB      0.0 MiB           1           if self.train_ratio == 0:
+   101    982.9 MiB      0.0 MiB           1               seed_list1 = []
+   102    982.9 MiB      0.0 MiB           1               seed_list2 = []
+   103                                                 else:
+   104                                                     seed_list1 = list(np.random.choice(list(self.alignment_dict.keys()), int(
+   105                                                         self.train_ratio * len(self.alignment_dict)), replace=False))
+   106                                                     seed_list2 = [self.alignment_dict[seed_list1[x]]
+   107                                                                   for x in range(len(seed_list1))]
+   108                                                     self.pre_seed_list1 = seed_list1
+   109                                                     self.pre_seed_list2 = seed_list2
+   110                                                     self.G1, self.G2 = seed_link(
+   111                                                         seed_list1, seed_list2, self.G1, self.G2)
+   112                                         
+   113                                                     self.H = self.calculateH(self.gamma)
+   114                                         
+   115    982.9 MiB      0.0 MiB           2           nx.set_edge_attributes(
+   116    982.9 MiB      0.0 MiB           1               self.G1, values=self.default_weight, name='weight')
+   117    982.9 MiB      0.0 MiB           2           nx.set_edge_attributes(
+   118    982.9 MiB      0.0 MiB           1               self.G2, values=self.default_weight, name='weight')
+   119                                         
+   120    982.9 MiB      0.0 MiB           1           index = sorted(list(self.G1.nodes()))
+   121    982.9 MiB      0.0 MiB           1           columns = sorted(list(self.G2.nodes()))
+   122                                         
+   123    982.9 MiB      0.0 MiB           1           start = time.time()
+   124                                         
+   125                                                 # Start iteration
+   126                                         
+   127                                                 while True:
+   128                                         
+   129                                                     #self.attr_norm_s, self.attr_norm_t =self.normalized_attribute(self.G1, self.G2)
+   130                                         
+   131   3629.2 MiB -11803.6 MiB          12               index = list(set(index) - set(seed_list1))
+   132   3629.2 MiB -11803.6 MiB          12               columns = list(set(columns) - set(seed_list2))            
+   133                                                     #index = list(set.union(*[set(self.G1.neighbors(node)) for node in seed_list1])- set(seed_list1))
+   134                                                     #columns = list(set.union(*[set(self.G2.neighbors(node)) for node in seed_list2])- set(seed_list2))
+   135                                                     
+   136   3629.2 MiB -11803.6 MiB          12               seed_n_id_list = seed_list1 + seed_list2
+   137   3629.2 MiB -11803.6 MiB          12               if len(columns) == 0 or len(index) == 0:
+   138                                                         break
+   139   3629.2 MiB  -9965.1 MiB          11               if len(self.alignment_dict) == len(seed_list1):
+   140                                                         break
+   141                                                     #print('\n ------ The current iteration : {} ------'.format(iteration))
+   142                                         
+   143   3629.2 MiB  -9965.1 MiB          11               if iteration == 0:
+   144                                                         # GNN Embedding Update
+   145   1003.6 MiB     20.7 MiB           2                   data_s, x_s, edge_index_s, edge_weight_s = self.convert2torch_data(
+   146    982.9 MiB      0.0 MiB           1                       self.G1, self.att_s)
+   147   1029.0 MiB     25.4 MiB           2                   data_t, x_t, edge_index_t, edge_weight_t = self.convert2torch_data(
+   148   1003.6 MiB      0.0 MiB           1                       self.G2, self.att_t)
+   149                                         
+   150                                                         # GNN-2
+   151   1057.2 MiB     28.2 MiB           2                   data_aug_s, x_aug_s, edge_index_aug_s, edge_weight_aug_s = self.convert2torch_data(
+   152   1029.0 MiB      0.0 MiB           1                       self.G1, self.att_aug_s)
+   153   1083.1 MiB     25.9 MiB           2                   data_aug_t, x_aug_t, edge_index_aug_t, edge_weight_aug_t = self.convert2torch_data(
+   154   1057.2 MiB      0.0 MiB           1                       self.G2, self.att_aug_t)
+   155                                         
+   156   1083.1 MiB    -78.9 MiB           2                   embedding1, embedding2 = self.embedding(seed_list1, seed_list2, iteration, self.epochs, x_s,
+   157   1083.1 MiB      0.0 MiB           1                                                           edge_index_s, edge_weight_s, x_t, edge_index_t, edge_weight_t, model, data_s, data_t)
+   158   1068.5 MiB    -14.6 MiB           2                   embedding_aug1, embedding_aug2 = self.embedding(seed_list1, seed_list2, iteration, self.epochs, x_aug_s, edge_index_aug_s,
+   159   1004.2 MiB      0.0 MiB           1                                                                   edge_weight_aug_s, x_aug_t, edge_index_aug_t, edge_weight_aug_t, model_aug, data_aug_s, data_aug_t)
+   160                                         
+   161                                                     # Update graph
+   162                                                     #print('\n start adding a seed nodes')
+   163   3629.2 MiB  -9965.1 MiB          11               if iteration == 0:
+   164   2558.3 MiB   1489.8 MiB           2                   seed_list1, seed_list2, S, adj2, S_emb = self.AddSeeds_ver2_init(
+   165   1068.5 MiB      0.0 MiB           1                       embedding1, embedding2, embedding_aug1, embedding_aug2, index, columns, seed_list1, seed_list2, iteration)
+   166                                                     else:
+   167   3629.2 MiB -20697.9 MiB          20                   seed_list1, seed_list2, S, adj2 = self.AddSeeds_ver2(
+   168   3629.2 MiB  -9965.1 MiB          10                       S_emb, embedding1, embedding2, embedding_aug1, embedding_aug2, index, columns, seed_list1, seed_list2, iteration)
+   169   3629.2 MiB -11803.6 MiB          11               iteration += 1
+   170                                         
+   171                                                 # Evaluate Performance
+   172                                                 #print("total time : {}sec".format(int(time.time() - start)))
+   173                                                 #print('\n Start evaluation...')
+   174                                                 #self.Evaluation(seed_list1, seed_list2)
+   175                                                 #S_prime, result = self.FinalEvaluation(
+   176                                                 #    S, embedding1, embedding2, seed_list1, seed_list2, self.idx1_dict, self.idx2_dict, adj2)
+   177                                                 #self.normdif_checker(self.att_aug_s, self.att_aug_t,
+   178                                                 #                    embedding_aug1, embedding_aug2)
+   179   1790.7 MiB  -1838.5 MiB           1           return seed_list1,seed_list2
+   180                                                 #return S, S_prime, seed_list1, seed_list2, result
+
+
+Filename: /home/konstantinos/Alpine/pred.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    44   1036.9 MiB   1036.9 MiB           1   @profile
+    45                                         def convertToPermHungarian2A(row_ind,col_ind,n, m):
+    46   1036.9 MiB      0.0 MiB           1       col_ind1=col_ind
+    47   1036.9 MiB      0.0 MiB        9873       for i in range(n):
+    48   1036.9 MiB      0.0 MiB        9872           if (i not in col_ind1):
+    49   1036.9 MiB      0.0 MiB          44                   col_ind1.append(i)
+    50   1036.9 MiB      0.0 MiB           1       m=max(n,m)
+    51   1036.9 MiB      0.0 MiB           1       P = np.zeros((m,m))
+    52                                             #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    53   1036.9 MiB      0.0 MiB           1       ans = []
+    54   1075.2 MiB      0.5 MiB        9873       for i in range(n):
+    55   1075.2 MiB     37.6 MiB        9872           P[col_ind[i]][row_ind[i]] = 1
+    56   1075.2 MiB      0.0 MiB        9872           if (row_ind[i] >= n) or (col_ind[i] >= m):
+    57                                                     continue
+    58   1075.2 MiB      0.2 MiB        9872           ans.append((row_ind[i], col_ind[i]))
+    59   1075.2 MiB      0.0 MiB           1       return P, ans
+
+
+Filename: /home/konstantinos/Alpine/GradP/gradp.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    60    607.6 MiB    607.6 MiB           1   @profile
+    61                                         def gradPMain(Gq, Gt, mu=1, niter=10, weight=1.0):
+    62    607.6 MiB      0.0 MiB           1       np.random.seed(0)
+    63    625.1 MiB     17.5 MiB           1       G1=Gt.copy()
+    64    640.9 MiB     15.7 MiB           1       G2=Gq.copy()
+    65    640.9 MiB      0.0 MiB           1       n=G1.number_of_nodes()
+    66    640.9 MiB      0.0 MiB           1       m=G2.number_of_nodes()
+    67    640.9 MiB      0.0 MiB        9917       for node in G1.nodes():
+    68    640.9 MiB      0.0 MiB        9916           if G1.degree(node) == 0:  # Check if the node has a degree of 0
+    69                                                     G1.add_edge(node, node)
+    70    640.9 MiB      0.0 MiB        9873       for node in G2.nodes():
+    71    640.9 MiB      0.0 MiB        9872           if G2.degree(node) == 0:  # Check if the node has a degree of 0
+    72                                                     G2.add_edge(node, node)
+    73    641.0 MiB      0.1 MiB           1       attr1 = np.ones((len(G1.nodes),1))
+    74                                                 #feature_extraction1(G1)
+    75    641.1 MiB      0.1 MiB           1       attr2 = np.ones((len(G2.nodes),1))
+    76                                         
+    77    641.1 MiB      0.0 MiB           1       idx1_dict = {}
+    78    641.8 MiB      0.7 MiB        9917       for i in range(len(G1.nodes)): idx1_dict[i] = i
+    79    641.8 MiB      0.0 MiB           1       idx2_dict = {}
+    80    642.3 MiB      0.5 MiB        9873       for i in range(len(G2.nodes)): idx2_dict[i] = i
+    81    642.3 MiB      0.0 MiB           1       alignment_dict=idx2_dict
+    82    642.3 MiB      0.0 MiB           1       alignment_dict_reversed=idx2_dict
+    83                                             #G1, G2, attr1, attr2, alignment_dict, alignment_dict_reversed, idx1_dict, idx2_dict \
+    84                                             #    = na_dataloader(args)
+    85    642.3 MiB      0.0 MiB           1       centrality='katz'
+    86    642.3 MiB      0.0 MiB           1       centrality='khop'
+    87    651.2 MiB      8.9 MiB           2       attr1_aug, attr2_aug = augment_attributes(G1, G2,
+    88    642.3 MiB      0.0 MiB           1                                                 attr1, attr2,
+    89    642.3 MiB      0.0 MiB           1                                                 num_attr = 15,
+    90    642.3 MiB      0.0 MiB           1                                                 version = centrality,     
+    91    642.3 MiB      0.0 MiB           1                                                 khop = 1,
+    92    642.3 MiB      0.0 MiB           1                                                 normalize = False) 
+    93    651.2 MiB      0.0 MiB           1       attr1_aug, attr2_aug = aug_trimming(attr1_aug, attr2_aug)
+    94                                         
+    95                                             #Checking statistics
+    96                                         #    str_con_portion = struct_consist_checker(G1, G2, alignment_dict)
+    97                                         #    att_con_portion = att_consist_checker(G1, G2, attr1, attr2, idx1_dict, idx2_dict, alignment_dict)
+    98                                         #    feat_avg_diff = feat_diff_checker(attr1_aug, attr2_aug)
+    99    651.2 MiB      0.0 MiB           1       k_hop=2;hid_dim=100;train_ratio=0.0;
+   100    651.2 MiB      0.0 MiB           2       GradAlign1 = GradAlign(G1, G2, attr1, attr2, attr1_aug, attr2_aug,k_hop, hid_dim, alignment_dict, alignment_dict_reversed, \
+   101    651.2 MiB      0.0 MiB           1                                         train_ratio, idx1_dict, idx2_dict, alpha = G2.number_of_nodes() / G1.number_of_nodes(), beta = 1)    
+   102    982.9 MiB    331.7 MiB           1       GradAlign1.run_algorithm()
+   103   1043.4 MiB     60.5 MiB           1       seed_list1, seed_list2 = GradAlign1.run_algorithm()
+   104   1043.4 MiB      0.0 MiB           1       seed_list2=np.array(seed_list2)
+   105   1036.9 MiB     -6.5 MiB           1       seed_list1=np.array(seed_list1)
+   106   1036.9 MiB      0.0 MiB           1       sorted_indices = np.argsort(seed_list2)
+   107                                         
+   108                                         # Reorder list_of_nodes2 using the sorted indices
+   109   1036.9 MiB      0.0 MiB           1       list_of_nodes2_sorted = seed_list2[sorted_indices]
+   110   1036.9 MiB      0.0 MiB           1       list_of_nodes2_sorted=[]
+   111                                             #print(len(G1.nodes))
+   112   1036.9 MiB      0.0 MiB        9917       for i in range(len(G1.nodes)):
+   113   1036.9 MiB      0.0 MiB        9916           list_of_nodes2_sorted.append(i)
+   114                                         # Reorder list_of_nodes1 with the same indices
+   115   1036.9 MiB      0.0 MiB           1       list_of_nodes1_sorted = seed_list1[sorted_indices]
+   116   1075.2 MiB     38.4 MiB           1       P2,_=convertToPermHungarian2A(list_of_nodes2_sorted,list_of_nodes1_sorted.tolist(),m,n)
+   117   1818.9 MiB    743.7 MiB           1       A = nx.to_numpy_array(Gq)
+   118   2569.1 MiB    750.2 MiB           1       B = nx.to_numpy_array(Gt)
+   119   2608.3 MiB     39.2 MiB           1       forbnorm = LA.norm(A[:m,:m] - (P2@B@P2.T)[:m,:m], 'fro')**2
+   120                                             #self.alignment_dict[seed_list1[i]] == seed_list2[i]:
+   121   2608.3 MiB      0.0 MiB           1       return list_of_nodes1_sorted,forbnorm
+
+
+----  GradP ----
+----> Forb_norm: 167271.99999999997
+----> Accuracy: 0.05375494071146245
+----> Spec_norm: 0
+----> Time: 59209.33054423332
+----> Isomorphic: False
+
+
+
+
+
+
+Filename: PartialTest.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    28    384.6 MiB    384.6 MiB           1   @profile
+    29                                         def RunExp():
+    30    384.6 MiB      0.0 MiB           1       plotall = False
+    31                                         
+    32    384.6 MiB      0.0 MiB           1       folderall = 'data3_'
+    33                                         
+    34                                         
+    35    384.6 MiB      0.0 MiB           1       foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
+    36    384.6 MiB      0.0 MiB           1       n_G = [ 1133,379, 1004, 327, 712]
+    37                                             #foldernames = [  'douban']
+    38                                             #n_G = [  3906]
+    39    384.6 MiB      0.0 MiB           1       foldernames = [ 'netscience']
+    40    384.6 MiB      0.0 MiB           1       n_G = [ 379]
+    41                                             #foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560","random/subgraph_DG_5120"]
+    42                                             #foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560","random/subgraph_QG_5120"]
+    43                                             #n_G = [ 80,160,320,640,1280,2560,5120]
+    44                                             #foldernames=["random/subgraph_DG_5120"]
+    45                                             #foldernames1=["random/subgraph_QG_5120"]
+    46                                             #n_G = [5120]
+    47                                             #foldernames = [ 'highschool']
+    48                                             #n_G = [ 327]
+    49                                             #foldernames = [  'highschool']
+    50                                             #n_G = [ 327]
+    51                                             #n_G = [575,5002,11586]
+    52                                             #n_GQ = [453,4623,8325]
+    53                                             #n_GT = [437,4483,7555]
+    54                                         
+    55                                             #foldernames = [ 'male','route','sp']
+    56                                             #n_G = [575]
+    57                                             #n_G=[5003]
+    58                                             #foldernames = ['facebook']
+    59                                             #9916
+    60                                             #9871
+    61    384.6 MiB      0.0 MiB           1       iters =1
+    62    384.6 MiB      0.0 MiB          12       percs = [(i+1)/10 for i in range(0,9)]
+    63    384.6 MiB      0.0 MiB           1       percs=[0.1]
+    64                                             #tun=[1,2,3,4,5,6,7]
+    65    384.6 MiB      0.0 MiB           1       tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Fugal","mcmc","GradP"]
+    66    384.6 MiB      0.0 MiB           1       tun=[1,2,3,4,5,6,8,9,10]
+    67    384.6 MiB      0.0 MiB           1       tuns=["GradP"]
+    68    384.6 MiB      0.0 MiB           1       tun=[10]
+    69                                             #tuns=["Alpine_Dummy","Grad","mcmc"]
+    70                                         
+    71                                         
+    72                                             #tun = [1,8,10]
+    73                                             #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+    74                                             #tuns=["Alpine"]
+    75                                             #tun=[4,8]
+    76                                         
+    77                                             #tun = [1]
+    78                                             #n_G = [4039]
+    79                                             #n_GQ = [9872]
+    80                                             #n_GT = [9872]
+    81                                         
+    82                                             #n_G = [1043]
+    83                                             #n_GQ = [1000]
+    84                                             #n_GT = [1000]
+    85                                         
+    86                                             #foldernames = ['sp']
+    87    384.6 MiB      0.0 MiB           1       foldernames = [ 'dblp']
+    88    384.6 MiB      0.0 MiB           1       n_G = [9916]
+    89   1212.9 MiB      0.0 MiB           2       def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
+    90   1212.9 MiB      0.0 MiB           1           print('---- ',name, '----')
+    91   1212.9 MiB      0.0 MiB           1           print('----> Forb_norm:', forb_norm)
+    92   1212.9 MiB      0.0 MiB           1           print('----> Accuracy:', accuracy)
+    93   1212.9 MiB      0.0 MiB           1           print('----> Spec_norm:', spec_norm)
+    94   1212.9 MiB      0.0 MiB           1           print('----> Time:', time_diff)
+    95   1212.9 MiB      0.0 MiB           1           print('----> Isomorphic:', isomorphic)
+    96   1212.9 MiB      0.0 MiB           1           print()     
+    97                                         
+    98    384.6 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/'
+    99    384.8 MiB      0.2 MiB           1       new_id = generate_new_id(get_max_previous_id(experimental_folder))
+   100    384.8 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/_{new_id}/'   
+   101    384.8 MiB      0.0 MiB           1       DGS=0
+   102    384.8 MiB      0.0 MiB           1       DGES=0
+   103    384.8 MiB      0.0 MiB           1       QGS=0
+   104    384.8 MiB      0.0 MiB           1       QGES=0
+   105    384.8 MiB      0.0 MiB           1       PGS=0
+   106    384.8 MiB      0.0 MiB           1       PGES=0         
+   107   1212.9 MiB      0.0 MiB           2       for k in range(0,len(foldernames)):
+   108    405.8 MiB     21.0 MiB           1               G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+   109    405.8 MiB      0.0 MiB           1               print(G)
+   110    405.8 MiB      0.0 MiB           1               DGS=G.number_of_nodes()
+   111                                         
+   112                                             # Get the number of edges
+   113    405.8 MiB      0.0 MiB           1               DGES = G.number_of_edges()
+   114                                                     
+   115                                                     #perc=percs[0]
+   116   1212.9 MiB      0.0 MiB           2               for perc in percs: 
+   117   1212.9 MiB      0.0 MiB           2                   for ptun in range(len(tun)): 
+   118    405.8 MiB      0.0 MiB           1                       folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
+   119    405.8 MiB      0.0 MiB           1                       os.makedirs(f'{experimental_folder}{foldernames[k]}/{int(perc*100)}', exist_ok=True)
+   120    405.8 MiB      0.0 MiB           1                       folder1=f'./{experimental_folder}/{foldernames[k]}/{int(perc*100)}'
+   121    405.8 MiB      0.0 MiB           1                       file_A_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
+   122    405.8 MiB      0.0 MiB           1                       file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
+   123                                                             
+   124    405.8 MiB      0.0 MiB           1                       file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
+   125    405.8 MiB      0.0 MiB           1                       file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
+   126    405.8 MiB      0.0 MiB           1                       n_Q = int(perc*G.number_of_nodes())
+   127                                                             #n_Q=n_GQ[k]#9872
+   128    405.8 MiB      0.0 MiB           1                       n_Q = 9872 
+   129    405.8 MiB      0.0 MiB           1                       print(f'Size of subgraph: {n_Q}')
+   130   1212.9 MiB      0.0 MiB           2                       for iter in range(iters):
+   131    405.8 MiB      0.0 MiB           1                           folder_ = f'{folder}/{iter}'
+   132    405.8 MiB      0.0 MiB           1                           folder1_ = f'{folder1}/{iter}'
+   133                                                                 #folder_ = f'{folder}'
+   134    405.8 MiB      0.0 MiB           1                           os.makedirs(f'{folder1_}', exist_ok=True)
+   135    405.8 MiB      0.0 MiB           1                           file_subgraph = f'{folder_}/subgraph.txt'
+   136    405.8 MiB      0.0 MiB           1                           file_nodes = f'{folder_}/nodes.txt'
+   137                                                                 #file_subgraph = f'raw_data/random/subgraph_QG_{n_G[k]}.txt'
+   138                                                                 #file_nodes = f'raw_data/random/nodes_QG_{n_G[k]}.txt'
+   139    405.8 MiB      0.0 MiB           1                           Q_real = read_list(file_nodes)
+   140    405.8 MiB      0.0 MiB           1                           print(f'Reading subgraph at {file_subgraph}')
+   141    405.8 MiB      0.0 MiB           1                           print(f'Reading alignment at {file_nodes}')
+   142    424.5 MiB     18.7 MiB           1                           G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
+   143    576.4 MiB    151.9 MiB           1                           A = nx.adjacency_matrix(G_Q).todense()
+   144    576.4 MiB      0.0 MiB           1                           print(G_Q)
+   145                                                                 #print(Q_real)
+   146    576.4 MiB      0.0 MiB           1                           QGS=G_Q.number_of_nodes()
+   147    576.4 MiB      0.0 MiB           1                           QGES = G_Q.number_of_edges()
+   148                                                                 #L = np.diag(np.array(np.sum(A, axis = 0)))
+   149                                                                 #eigv_G_Q, _ = linalg.eig(L - A)
+   150                                                                 #idx = eigv_G_Q.argsort()[::]   
+   151                                                                 #eigv_G_Q = eigv_G_Q[idx]
+   152                                                                 #for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
+   153                                                                 #file_real_spectrum.write(f'\n')
+   154    576.4 MiB      0.0 MiB           1                           start = time.time()
+   155    576.4 MiB      0.0 MiB           1                           if(tun[ptun]==1):
+   156                                                                     print("Alpine")
+   157                                                                     _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
+   158    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==2):
+   159                                                                     print("Cone")
+   160                                                                     _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
+   161    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==3):
+   162                                                                     print("SGWL")
+   163                                                                     _, list_of_nodes, forb_norm = SGWLSA(G_Q.copy(), G.copy())
+   164    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==4):
+   165                                                                     print("Alpine_Dummy")
+   166                                                                     _, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
+   167    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==5):
+   168                                                                     print("Grampa")
+   169                                                                     _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
+   170    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==6):
+   171                                                                     print("Regal")
+   172                                                                     _, list_of_nodes, forb_norm = Regal(G_Q.copy(), G.copy())      
+   173    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==7):
+   174                                                                     print("MDS")
+   175                                                                     _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+   176    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==8):
+   177                                                                     print("fugal")
+   178                                                                     _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
+   179    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==9):
+   180                                                                     print("mcmc")
+   181                                                                     list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
+   182    576.4 MiB      0.0 MiB           1                           elif(tun[ptun]==10):
+   183    576.4 MiB      0.0 MiB           1                               print("GradAlignP")
+   184   1075.8 MiB    499.4 MiB           1                               list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
+   185                                                                 else:
+   186                                                                     print("NO given algorithm ID")
+   187                                                                     exit()
+   188   1075.8 MiB      0.0 MiB           1                           end = time.time()
+   189   1075.8 MiB      0.0 MiB           1                           subgraph = G.subgraph(list_of_nodes)
+   190                                                                 
+   191   1075.8 MiB      0.0 MiB           1                           PGS=subgraph.number_of_nodes()
+   192   1075.8 MiB      0.0 MiB           1                           PGES = subgraph.number_of_edges()
+   193   1075.8 MiB      0.0 MiB           1                           isomorphic=False
+   194   1075.8 MiB      0.0 MiB           1                           if(forb_norm==0):
+   195                                                                     isomorphic=True
+   196   1075.8 MiB      0.0 MiB           1                           time_diff = end - start
+   197   1075.8 MiB      0.0 MiB           1                           file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
+   198   1075.8 MiB      0.0 MiB        9873                           for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
+   199   1174.3 MiB     98.6 MiB           1                           A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
+   200   1212.9 MiB     38.5 MiB           1                           L = np.diag(np.array(np.sum(A, axis = 0)))
+   201                                         
+   202                                         
+   203                                                                 #   accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+   204   1212.9 MiB      0.0 MiB           1                           accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1265
+   205                                                                 #len(Q_real)
+   206   1212.9 MiB      0.0 MiB           1                           spec_norm=0
+   207   1212.9 MiB      0.0 MiB           1                           file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+   208   1212.9 MiB      0.0 MiB           1                           printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)            
+   209   1212.9 MiB      0.0 MiB           1                   print('\n')
+   210   1212.9 MiB      0.0 MiB           1               print('\n\n')
+
+

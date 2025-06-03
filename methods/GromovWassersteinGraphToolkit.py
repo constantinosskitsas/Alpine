@@ -16,7 +16,7 @@ from . import GromovWassersteinFramework as Gwl
 import numpy as np
 from scipy.sparse import csr_matrix
 from typing import List, Dict, Tuple
-
+from memory_profiler import profile
 
 def estimate_target_distribution(probs: Dict, dim_t: int = 2) -> np.ndarray:
     """

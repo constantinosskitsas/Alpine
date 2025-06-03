@@ -2,10 +2,11 @@ import numpy as np
 from scipy import sparse
 import theano
 from theano import tensor as T
-
+from memory_profiler import profile
 
 # Full NMF matrix (which NMF factorizes with SVD)
 # Taken from MILE code
+
 def netmf_mat_full(A, window=10, b=1.0):
     if not sparse.issparse(A):
         A = sparse.csr_matrix(A)

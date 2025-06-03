@@ -7,6 +7,8 @@ Bregman projections for regularized OT (Sinkhorn distance).
 import torch
 import time
 import warnings
+from memory_profiler import profile
+
 #import numpy as np
 M_EPS = 1e-16
 
@@ -362,8 +364,8 @@ def sinkhorn_knopp(a, b, C, reg=1e-1, maxIter=1000, stopThr=1e-9,
             #a_hat = torch.matmul(v, K.T) * u
             #err = (a[:-1] - a_hat[:-1]).pow(2).sum().item()
             #print(len(a),' ',len(b))
-            divA=(torch.sum(a)/(torch.sum(a)+torch.sum(b)))
-            divB=(torch.sum(b)/(torch.sum(a)+torch.sum(b)))
+            #divA=(torch.sum(a)/(torch.sum(a)+torch.sum(b)))
+            #divB=(torch.sum(b)/(torch.sum(a)+torch.sum(b)))
 
             if len(a)!=len(b):
                 #print('ok')

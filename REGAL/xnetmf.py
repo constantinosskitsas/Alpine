@@ -6,7 +6,7 @@ import time
 import os
 import sys
 from .config import RepMethod, Graph
-
+from memory_profiler import profile
 # Input: graph, RepMethod
 # Output: dictionary of dictionaries: for each node, dictionary containing {node : {layer_num : [list of neighbors]}}
 #        dictionary {node ID: degree}

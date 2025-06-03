@@ -5,6 +5,8 @@ from mcmc.mmnc_run import run_mmnc_align,run_immnc_align
 import copy
 import networkx as nx
 import os
+from memory_profiler import profile
+
 #os.environ["OMP_NUM_THREADS"] = "4"  # OpenMP
 #os.environ["OPENBLAS_NUM_THREADS"] = "4"  # OpenBLAS
 ##os.environ["MKL_NUM_THREADS"] = "4"  # Intel MKL
@@ -95,6 +97,7 @@ def read_list(filename):
             linesplit = line[:-1].split(' ')
             list_nodes.append(int(linesplit[0]))
     return list_nodes
+
 def mcAlign(G1, G2,Q_real):
     train_ratio = 0.04
     K_de = 3

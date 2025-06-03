@@ -8,6 +8,7 @@ import pandas
 import random
 from scipy.sparse import csr_matrix, lil_matrix
 from typing import Dict, List, Tuple
+from memory_profiler import profile
 
 
 def load_txt_community_file(edge_path: str, label_path: str, flag: str = ' ') -> Dict:

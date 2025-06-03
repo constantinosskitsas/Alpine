@@ -1,0 +1,534 @@
+683
+Created new folder: ./data3_/res/_683
+set seed: 5
+Making ./raw_data/dblp.txt graph...
+Done ./raw_data/dblp.txt Peter...
+Graph with 9916 nodes and 44808 edges
+Size of subgraph: 9872
+Reading subgraph at ./data3_/dblp/10/0/subgraph.txt
+Reading alignment at ./data3_/dblp/10/0/nodes.txt
+Making ./data3_/dblp/10/0/subgraph.txt graph...
+Done ./data3_/dblp/10/0/subgraph.txt Peter...
+Graph with 9872 nodes and 39561 edges
+Cone
+Filename: /home/konstantinos/Alpine/embedding.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     9   2111.9 MiB   2111.9 MiB           1   @profile
+    10                                         def netmf_mat_full(A, window=10, b=1.0):
+    11   2111.9 MiB      0.0 MiB           1       if not sparse.issparse(A):
+    12   2111.9 MiB      0.0 MiB           1           A = sparse.csr_matrix(A)
+    13                                             # print "A shape", A.shape
+    14   2111.9 MiB      0.0 MiB           1       n = A.shape[0]#
+    15   2111.9 MiB      0.0 MiB           1       vol = float(A.sum())
+    16   2112.8 MiB      1.0 MiB           1       L, d_rt = sparse.csgraph.laplacian(A, normed=True, return_diag=True)
+    17   2113.8 MiB      1.0 MiB           1       X = sparse.identity(n) - L
+    18   2113.8 MiB      0.0 MiB           1       S = np.zeros_like(X)
+    19   2113.8 MiB      0.0 MiB           1       X_power = sparse.identity(n)
+    20   3726.3 MiB      0.0 MiB          11       for i in range(window):
+    21                                                 #print(f"@{i+1}/{window}")
+    22                                                 # print "Compute matrix %d-th power" % (i + 1)
+    23   3720.2 MiB    805.5 MiB          10           X_power = X_power.dot(X)
+    24   3726.3 MiB    806.9 MiB          10           S += X_power
+    25   3726.3 MiB      0.0 MiB           1       S *= vol / window / b
+    26                                             #print("a")
+    27   3726.3 MiB      0.0 MiB           1       D_rt_inv = sparse.diags(d_rt ** -1)
+    28                                             #print("b")
+    29   4531.8 MiB    805.5 MiB           1       M = D_rt_inv.dot(D_rt_inv.dot(S).T)
+    30                                             #print("c")
+    31   4531.9 MiB      0.1 MiB           1       m = T.matrix()
+    32                                         #    print("d")
+    33   4533.6 MiB      1.7 MiB           1       f = theano.function([m], T.log(T.maximum(m, 1)))
+    34                                         #    print("e")
+    35   5283.7 MiB    750.2 MiB           1       Y = f(M.todense().astype(theano.config.floatX))
+    36                                         #    print("f")
+    37   5349.0 MiB     65.2 MiB           1       return sparse.csr_matrix(Y)
+
+
+Filename: /home/konstantinos/Alpine/embedding.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    51   2111.9 MiB   2111.9 MiB           1   @profile
+    52                                         def netmf(A, dim=128, window=10, b=1.0, normalize=True):
+    53   2181.3 MiB     69.4 MiB           1       prox_sim = netmf_mat_full(A, window, b)
+    54   2331.9 MiB    150.6 MiB           1       embed = svd_embed(prox_sim, dim)
+    55   2331.9 MiB      0.0 MiB           1       if normalize:
+    56   2331.9 MiB      0.0 MiB           1           norms = np.linalg.norm(embed, axis=1).reshape((embed.shape[0], 1))
+    57   2331.9 MiB      0.0 MiB           1           norms[norms == 0] = 1
+    58   2331.9 MiB      0.0 MiB           1           embed = embed / norms
+    59   2331.9 MiB      0.0 MiB           1       return embed
+
+
+Filename: /home/konstantinos/Alpine/embedding.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+     9   2331.9 MiB   2331.9 MiB           1   @profile
+    10                                         def netmf_mat_full(A, window=10, b=1.0):
+    11   2331.9 MiB      0.0 MiB           1       if not sparse.issparse(A):
+    12   2331.9 MiB      0.0 MiB           1           A = sparse.csr_matrix(A)
+    13                                             # print "A shape", A.shape
+    14   2331.9 MiB      0.0 MiB           1       n = A.shape[0]#
+    15   2331.9 MiB      0.0 MiB           1       vol = float(A.sum())
+    16   2331.9 MiB      0.0 MiB           1       L, d_rt = sparse.csgraph.laplacian(A, normed=True, return_diag=True)
+    17   2331.9 MiB      0.0 MiB           1       X = sparse.identity(n) - L
+    18   2331.9 MiB      0.0 MiB           1       S = np.zeros_like(X)
+    19   2331.9 MiB      0.0 MiB           1       X_power = sparse.identity(n)
+    20   4269.2 MiB      0.0 MiB          11       for i in range(window):
+    21                                                 #print(f"@{i+1}/{window}")
+    22                                                 # print "Compute matrix %d-th power" % (i + 1)
+    23   4267.0 MiB    967.7 MiB          10           X_power = X_power.dot(X)
+    24   4269.2 MiB    969.6 MiB          10           S += X_power
+    25   4269.2 MiB      0.0 MiB           1       S *= vol / window / b
+    26                                             #print("a")
+    27   4269.2 MiB      0.0 MiB           1       D_rt_inv = sparse.diags(d_rt ** -1)
+    28                                             #print("b")
+    29   5236.9 MiB    967.7 MiB           1       M = D_rt_inv.dot(D_rt_inv.dot(S).T)
+    30                                             #print("c")
+    31   5236.9 MiB      0.0 MiB           1       m = T.matrix()
+    32                                         #    print("d")
+    33   5128.3 MiB   -108.7 MiB           1       f = theano.function([m], T.log(T.maximum(m, 1)))
+    34                                         #    print("e")
+    35   5878.5 MiB    750.2 MiB           1       Y = f(M.todense().astype(theano.config.floatX))
+    36                                         #    print("f")
+    37   5962.1 MiB     83.6 MiB           1       return sparse.csr_matrix(Y)
+
+
+Filename: /home/konstantinos/Alpine/embedding.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    51   2331.9 MiB   2331.9 MiB           1   @profile
+    52                                         def netmf(A, dim=128, window=10, b=1.0, normalize=True):
+    53   2306.8 MiB    -25.1 MiB           1       prox_sim = netmf_mat_full(A, window, b)
+    54   2414.5 MiB    107.7 MiB           1       embed = svd_embed(prox_sim, dim)
+    55   2414.5 MiB      0.0 MiB           1       if normalize:
+    56   2414.5 MiB      0.0 MiB           1           norms = np.linalg.norm(embed, axis=1).reshape((embed.shape[0], 1))
+    57   2414.5 MiB      0.0 MiB           1           norms[norms == 0] = 1
+    58   2414.5 MiB      0.0 MiB           1           embed = embed / norms
+    59   2414.5 MiB      0.0 MiB           1       return embed
+
+
+Filename: /home/konstantinos/Alpine/utils/__init__.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    67   6145.6 MiB   6145.6 MiB           1   @profile
+    68                                         def procrustes(X_src, Y_tgt):
+    69                                             '''
+    70                                             print "procrustes:", Y_tgt, X_src
+    71                                             print np.isnan(Y_tgt).any(), np.isinf(Y_tgt).any()
+    72                                             print np.isnan(X_src).any(), np.isinf(X_src).any()
+    73                                             print np.min(Y_tgt), np.max(Y_tgt)
+    74                                             print np.min(X_src), np.max(X_src)
+    75                                             dot = np.dot(Y_tgt.T, X_src)
+    76                                             print np.isnan(dot).any(), np.isinf(dot).any()
+    77                                             print np.min(dot), np.max(dot)
+    78                                             '''
+    79   6145.6 MiB      0.0 MiB           1       U, s, V = np.linalg.svd(np.dot(Y_tgt.T, X_src))
+    80   6145.6 MiB      0.0 MiB           1       return np.dot(U, V)
+
+
+Filename: /home/konstantinos/Alpine/unsup_align.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    86   2414.5 MiB   2414.5 MiB           1   @profile
+    87                                         def convex_init_sparse(X, Y, K_X=None, K_Y=None, niter=10, reg=1.0, apply_sqrt=False, P=None):
+    88   2414.5 MiB      0.0 MiB           1       if P is not None:  # already given initial correspondence--then just procrustes
+    89                                                 return utils.procrustes(P.dot(X), Y).T, P
+    90   2414.5 MiB      0.0 MiB           1       n, d = X.shape
+    91   2414.5 MiB      0.0 MiB           1       if apply_sqrt:
+    92                                                 X, Y = sqrt_eig(X), sqrt_eig(Y)
+    93   2414.5 MiB      0.0 MiB           1       if K_X is None:
+    94                                                 K_X = np.dot(X, X.T)
+    95   2414.5 MiB      0.0 MiB           1       if K_Y is None:
+    96                                                 K_Y = np.dot(Y, Y.T)
+    97   2414.6 MiB      0.0 MiB           1       K_Y = sparse.linalg.norm(K_X) / sparse.linalg.norm(K_Y) * K_Y  # CHANGED
+    98   2414.6 MiB      0.0 MiB           1       K2_X, K2_Y = K_X.dot(K_X), K_Y.dot(K_Y)
+    99   3854.4 MiB   1439.9 MiB           1       K_X, K_Y, K2_X, K2_Y = K_X.toarray(), K_Y.toarray(), K2_X.toarray(), K2_Y.toarray()
+   100   4604.7 MiB    750.2 MiB           1       P = np.ones([n, n]) / float(n)
+   101                                         
+   102   6145.6 MiB      0.0 MiB          11       for it in range(1, niter + 1):
+   103                                                 # if it % 10 == 0:
+   104                                                 #     print(it)
+   105   6145.6 MiB    790.5 MiB          10           G = P.dot(K2_X) + K2_Y.dot(P) - 2 * K_Y.dot(P.dot(K_X))
+   106                                                 # G = G.todense() #TODO how to get around this??
+   107   6145.6 MiB    750.4 MiB          10           q = ot.sinkhorn(np.ones(n), np.ones(n), G, reg, stopThr=1e-3)
+   108                                                 #q = sparse.csr_matrix(q)
+   109                                                 # print q.shape
+   110   6145.6 MiB      0.0 MiB          10           alpha = 2.0 / float(2.0 + it)
+   111   6145.6 MiB      0.0 MiB          10           P = alpha * q + (1.0 - alpha) * P
+   112   6145.6 MiB      0.0 MiB           1       obj = np.linalg.norm(P.dot(K_X) - K_Y.dot(P))
+   113                                             # print(obj)
+   114   6145.8 MiB      0.3 MiB           1       return utils.procrustes(P.dot(X), Y).T, P
+
+
+Filename: /home/konstantinos/Alpine/unsup_align.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    31   3205.5 MiB   3205.5 MiB           1   @profile
+    32                                         def align(X, Y, R, lr=1.0, bsz=10, nepoch=5, niter=10,
+    33                                                   nmax=10, reg=0.05, verbose=True, project_every=True):
+    34   3205.6 MiB      0.0 MiB           6       for epoch in range(1, nepoch + 1):
+    35   3205.6 MiB      0.0 MiB          17           for _it in range(1, niter + 1):
+    36                                                     # sample mini-batch
+    37   3205.6 MiB      0.0 MiB          12               xt = X[np.random.permutation(nmax)[:bsz], :]
+    38   3205.6 MiB      0.0 MiB          12               yt = Y[np.random.permutation(nmax)[:bsz], :]
+    39                                                     # compute OT on minibatch
+    40   3205.6 MiB      0.0 MiB          12               C = -np.dot(np.dot(xt, R), yt.T)
+    41                                                     # print bsz, C.shape
+    42   3205.6 MiB      0.1 MiB          12               P = ot.sinkhorn(np.ones(bsz), np.ones(bsz), C, reg, stopThr=1e-3)
+    43                                                     # print P.shape, C.shape
+    44                                                     # compute gradient
+    45                                                     # print "random values from embeddings:", xt, yt
+    46                                                     # print "sinkhorn", np.isnan(P).any(), np.isinf(P).any()
+    47                                                     #Pyt = np.dot(P, yt)
+    48                                                     # print "Pyt", np.isnan(Pyt).any(), np.isinf(Pyt).any()
+    49   3205.6 MiB      0.0 MiB          12               G = - np.dot(xt.T, np.dot(P, yt))
+    50                                                     # print "G", np.isnan(G).any(), np.isinf(G).any()
+    51   3205.6 MiB      0.0 MiB          12               update = lr / bsz * G
+    52                                                     #print(("Update: %.3f (norm G %.3f)" %
+    53                                                     #       (np.linalg.norm(update), np.linalg.norm(G))))
+    54   3205.6 MiB      0.0 MiB          12               R -= update
+    55                                         
+    56                                                     # project on orthogonal matrices
+    57   3205.6 MiB      0.0 MiB          12               if project_every:
+    58   3205.6 MiB      0.0 MiB          12                   U, s, VT = np.linalg.svd(R)
+    59   3205.6 MiB      0.0 MiB          12                   R = np.dot(U, VT)
+    60   3205.6 MiB      0.0 MiB           5           niter //= 4
+    61                                                 #if verbose:
+    62                                                 #    print(("epoch: %d  obj: %.3f" % (epoch, objective(X, Y, R))))
+    63   3205.6 MiB      0.0 MiB           1       if not project_every:
+    64                                                 U, s, VT = np.linalg.svd(R)
+    65                                                 R = np.dot(U, VT)
+    66   3205.6 MiB      0.0 MiB           1       return R, P
+
+
+Filename: /home/konstantinos/Alpine/conealign.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    27   2414.5 MiB   2414.5 MiB           1   @profile
+    28                                         def align_embeddings(embed1, embed2, adj1=None, adj2=None, struc_embed=None, struc_embed2=None):
+    29                                             # Step 2: Align Embedding Spaces
+    30   2414.5 MiB      0.0 MiB           1       corr = None
+    31   2414.5 MiB      0.0 MiB           1       if struc_embed is not None and struc_embed2 is not None:
+    32                                                 corr = sklearn.metrics.pairwise.euclidean_distances(embed1, embed2)
+    33                                                 corr = np.exp(-corr)
+    34                                         
+    35                                                 # Take only top correspondences
+    36                                                 matches = np.zeros(corr.shape)
+    37                                                 matches[np.arange(corr.shape[0]), np.argmax(corr, axis=1)] = 1
+    38                                                 corr = matches
+    39                                         
+    40                                             # Convex Initialization
+    41   2414.5 MiB      0.0 MiB           1       if adj1 is not None and adj2 is not None:
+    42   2414.5 MiB      0.0 MiB           1           if not sps.issparse(adj1):
+    43                                                     adj1 = sps.csr_matrix(adj1)
+    44   2414.5 MiB      0.0 MiB           1           if not sps.issparse(adj2):
+    45                                                     adj2 = sps.csr_matrix(adj2)
+    46   3205.5 MiB    791.0 MiB           2           init_sim, corr_mat = unsup_align.convex_init_sparse(
+    47   2414.5 MiB      0.0 MiB           1               embed1, embed2, K_X=adj1, K_Y=adj2, apply_sqrt=False, niter=10, reg=1, P=corr)
+    48                                             else:
+    49                                                 init_sim, corr_mat = unsup_align.convex_init(
+    50                                                     embed1, embed2, apply_sqrt=False, niter=10, reg=1, P=corr)
+    51                                         
+    52   3205.5 MiB   -750.1 MiB           2       dim_align_matrix, corr_mat = unsup_align.align(
+    53   3205.5 MiB      0.0 MiB           1           embed1, embed2, init_sim, lr=1, bsz=10, nepoch=5, niter=10, reg=0.05)
+    54                                          
+    55   2455.4 MiB   -750.1 MiB           1       aligned_embed1 = embed1.dot(dim_align_matrix)
+    56                                         
+    57   2455.6 MiB      0.2 MiB           2       alignment_matrix = kd_align(
+    58   2455.4 MiB      0.0 MiB           1           aligned_embed1, embed2, distance_metric='euclidean', num_top=10)
+    59                                         
+    60   3205.2 MiB    749.6 MiB           1       return alignment_matrix, sklearn.metrics.pairwise.euclidean_distances(aligned_embed1, embed2)
+
+
+Filename: /home/konstantinos/Alpine/conealign.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    14   3205.3 MiB   3205.3 MiB           1   @profile
+    15                                         def convertToPermHungarian(M, n1, n2):
+    16   3205.3 MiB      0.0 MiB           1       row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
+    17   3205.3 MiB      0.0 MiB           1       n = len(M)
+    18                                         
+    19   3205.3 MiB      0.0 MiB           1       P = np.zeros((n, n))
+    20   3205.3 MiB      0.0 MiB           1       ans = []
+    21   3211.7 MiB -1014657.0 MiB        9917       for i in range(n):
+    22   3211.7 MiB -1014515.0 MiB        9916           P[row_ind[i]][col_ind[i]] = 1
+    23   3211.7 MiB -1014521.1 MiB        9916           if (row_ind[i] >= n1) or (col_ind[i] >= n2):
+    24                                                     continue
+    25   3211.7 MiB -1014658.6 MiB        9916           ans.append((row_ind[i], col_ind[i]))
+    26   3105.7 MiB   -105.9 MiB           1       return P, ans
+
+
+Filename: /home/konstantinos/Alpine/conealign.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    14   3106.4 MiB   3106.4 MiB           1   @profile
+    15                                         def convertToPermHungarian(M, n1, n2):
+    16   3106.4 MiB      0.0 MiB           1       row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
+    17   3106.4 MiB      0.0 MiB           1       n = len(M)
+    18                                         
+    19   3106.4 MiB      0.0 MiB           1       P = np.zeros((n, n))
+    20   3106.4 MiB      0.0 MiB           1       ans = []
+    21   3146.1 MiB      1.1 MiB        9917       for i in range(n):
+    22   3146.1 MiB     37.2 MiB        9916           P[row_ind[i]][col_ind[i]] = 1
+    23   3146.1 MiB      0.0 MiB        9916           if (row_ind[i] >= n1) or (col_ind[i] >= n2):
+    24                                                     continue
+    25   3146.1 MiB      1.3 MiB        9872           ans.append((row_ind[i], col_ind[i]))
+    26   3146.1 MiB      0.0 MiB           1       return P, ans
+
+
+Filename: /home/konstantinos/Alpine/conealign.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+   120    608.0 MiB    608.0 MiB           1   @profile
+   121                                         def coneGAM(Gq,Gt):
+   122    608.0 MiB      0.0 MiB           1       n1 = len(Gq.nodes())
+   123    608.0 MiB      0.0 MiB           1       n2 = len(Gt.nodes())
+   124    608.0 MiB      0.0 MiB           1       n = max(n1, n2)
+   125    608.0 MiB      0.0 MiB           1       nmin= min(n1,n2)
+   126    608.1 MiB      0.0 MiB          45       for i in range(n1, n):
+   127    608.1 MiB      0.1 MiB          44           Gq.add_node(i)
+   128    608.1 MiB      0.0 MiB          44           Gq.add_edge(i,i)
+   129    608.1 MiB      0.0 MiB           1       for i in range(n2, n):
+   130                                                 Gt.add_node(i)
+   131                                                 
+   132                                             
+   133   1361.5 MiB    753.4 MiB           1       A = nx.to_numpy_array(Gq)
+   134   2111.9 MiB    750.4 MiB           1       B = nx.to_numpy_array(Gt)
+   135   2111.9 MiB      0.0 MiB           1       dim= 128
+   136   2111.9 MiB      0.0 MiB           1       if (dim>=n1):
+   137                                                 dim= n1-10
+   138   2331.9 MiB    220.0 MiB           2       emb_matrixA = embedding.netmf(
+   139   2111.9 MiB      0.0 MiB           1           A, dim=dim, window=10, b=1, normalize=True)
+   140                                         
+   141   2414.5 MiB     82.7 MiB           2       emb_matrixB = embedding.netmf(
+   142   2331.9 MiB      0.0 MiB           1           B, dim=dim, window=10, b=1, normalize=True)
+   143   3205.3 MiB    790.7 MiB           2       alignment_matrix, cost_matrix = align_embeddings(
+   144   2414.5 MiB      0.0 MiB           1           emb_matrixA,
+   145   2414.5 MiB      0.0 MiB           1           emb_matrixB,
+   146   2414.5 MiB      0.0 MiB           1           adj1=csr_matrix(A),
+   147   2414.5 MiB      0.0 MiB           1           adj2=csr_matrix(B),
+   148   2414.5 MiB      0.0 MiB           1           struc_embed=None,
+   149   2414.5 MiB      0.0 MiB           1           struc_embed2=None
+   150                                             )
+   151   3205.3 MiB      0.0 MiB           1       cost_matrix=cost_matrix*-1
+   152   3105.8 MiB    -99.5 MiB           1       P2,_ = convertToPermHungarian(cost_matrix, n, n)
+   153                                         
+   154   3106.4 MiB      0.6 MiB           1       forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
+   155   3146.3 MiB     39.9 MiB           1       P_perm,ans = convertToPermHungarian(cost_matrix, n1, n2)
+   156   3146.3 MiB      0.0 MiB           1       list_of_nodes = []
+   157   3146.3 MiB      0.0 MiB        9873       for el in ans: list_of_nodes.append(el[1])
+   158   3146.3 MiB      0.0 MiB           1       return ans, list_of_nodes, forbnorm
+
+
+----  Cone ----
+----> Forb_norm: 120304.0
+----> Accuracy: 0.06719367588932806
+----> Spec_norm: 0
+----> Time: 459.4057183265686
+----> Isomorphic: False
+
+
+
+
+
+
+Filename: PartialTest.py
+
+Line #    Mem usage    Increment  Occurrences   Line Contents
+=============================================================
+    28    385.0 MiB    385.0 MiB           1   @profile
+    29                                         def RunExp():
+    30    385.0 MiB      0.0 MiB           1       plotall = False
+    31                                         
+    32    385.0 MiB      0.0 MiB           1       folderall = 'data3_'
+    33                                         
+    34                                         
+    35    385.0 MiB      0.0 MiB           1       foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles']
+    36    385.0 MiB      0.0 MiB           1       n_G = [ 1133,379, 1004, 327, 712]
+    37                                             #foldernames = [  'douban']
+    38                                             #n_G = [  3906]
+    39    385.0 MiB      0.0 MiB           1       foldernames = [ 'netscience']
+    40    385.0 MiB      0.0 MiB           1       n_G = [ 379]
+    41                                             #foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560","random/subgraph_DG_5120"]
+    42                                             #foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560","random/subgraph_QG_5120"]
+    43                                             #n_G = [ 80,160,320,640,1280,2560,5120]
+    44                                             #foldernames=["random/subgraph_DG_5120"]
+    45                                             #foldernames1=["random/subgraph_QG_5120"]
+    46                                             #n_G = [5120]
+    47                                             #foldernames = [ 'highschool']
+    48                                             #n_G = [ 327]
+    49                                             #foldernames = [  'highschool']
+    50                                             #n_G = [ 327]
+    51                                             #n_G = [575,5002,11586]
+    52                                             #n_GQ = [453,4623,8325]
+    53                                             #n_GT = [437,4483,7555]
+    54                                         
+    55                                             #foldernames = [ 'male','route','sp']
+    56                                             #n_G = [575]
+    57                                             #n_G=[5003]
+    58                                             #foldernames = ['facebook']
+    59                                             #9916
+    60                                             #9871
+    61    385.0 MiB      0.0 MiB           1       iters =1
+    62    385.0 MiB      0.0 MiB          12       percs = [(i+1)/10 for i in range(0,9)]
+    63    385.0 MiB      0.0 MiB           1       percs=[0.1]
+    64                                             #tun=[1,2,3,4,5,6,7]
+    65    385.0 MiB      0.0 MiB           1       tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Fugal","mcmc","GradP"]
+    66    385.0 MiB      0.0 MiB           1       tun=[1,2,3,4,5,6,8,9,10]
+    67    385.0 MiB      0.0 MiB           1       tuns=["Cone"]
+    68    385.0 MiB      0.0 MiB           1       tun=[2]
+    69                                             #tuns=["Alpine_Dummy","Grad","mcmc"]
+    70                                         
+    71                                         
+    72                                             #tun = [1,8,10]
+    73                                             #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
+    74                                             #tuns=["Alpine"]
+    75                                             #tun=[4,8]
+    76                                         
+    77                                             #tun = [1]
+    78                                             #n_G = [4039]
+    79                                             #n_GQ = [9872]
+    80                                             #n_GT = [9872]
+    81                                         
+    82                                             #n_G = [1043]
+    83                                             #n_GQ = [1000]
+    84                                             #n_GT = [1000]
+    85                                         
+    86                                             #foldernames = ['sp']
+    87    385.0 MiB      0.0 MiB           1       foldernames = [ 'dblp']
+    88    385.0 MiB      0.0 MiB           1       n_G = [9916]
+    89    958.0 MiB      0.0 MiB           2       def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
+    90    958.0 MiB      0.0 MiB           1           print('---- ',name, '----')
+    91    958.0 MiB      0.0 MiB           1           print('----> Forb_norm:', forb_norm)
+    92    958.0 MiB      0.0 MiB           1           print('----> Accuracy:', accuracy)
+    93    958.0 MiB      0.0 MiB           1           print('----> Spec_norm:', spec_norm)
+    94    958.0 MiB      0.0 MiB           1           print('----> Time:', time_diff)
+    95    958.0 MiB      0.0 MiB           1           print('----> Isomorphic:', isomorphic)
+    96    958.0 MiB      0.0 MiB           1           print()     
+    97                                         
+    98    385.0 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/'
+    99    385.1 MiB      0.1 MiB           1       new_id = generate_new_id(get_max_previous_id(experimental_folder))
+   100    385.1 MiB      0.0 MiB           1       experimental_folder=f'./{folderall}/res/_{new_id}/'   
+   101    385.1 MiB      0.0 MiB           1       DGS=0
+   102    385.1 MiB      0.0 MiB           1       DGES=0
+   103    385.1 MiB      0.0 MiB           1       QGS=0
+   104    385.1 MiB      0.0 MiB           1       QGES=0
+   105    385.1 MiB      0.0 MiB           1       PGS=0
+   106    385.1 MiB      0.0 MiB           1       PGES=0         
+   107    958.0 MiB      0.0 MiB           2       for k in range(0,len(foldernames)):
+   108    406.2 MiB     21.1 MiB           1               G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
+   109    406.2 MiB      0.0 MiB           1               print(G)
+   110    406.2 MiB      0.0 MiB           1               DGS=G.number_of_nodes()
+   111                                         
+   112                                             # Get the number of edges
+   113    406.2 MiB      0.0 MiB           1               DGES = G.number_of_edges()
+   114                                                     
+   115                                                     #perc=percs[0]
+   116    958.0 MiB      0.0 MiB           2               for perc in percs: 
+   117    958.0 MiB      0.0 MiB           2                   for ptun in range(len(tun)): 
+   118    406.2 MiB      0.0 MiB           1                       folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
+   119    406.2 MiB      0.0 MiB           1                       os.makedirs(f'{experimental_folder}{foldernames[k]}/{int(perc*100)}', exist_ok=True)
+   120    406.2 MiB      0.0 MiB           1                       folder1=f'./{experimental_folder}/{foldernames[k]}/{int(perc*100)}'
+   121    406.2 MiB      0.0 MiB           1                       file_A_results = open(f'{folder1}/SizeTest_results{tuns[ptun]}.txt', 'w')
+   122    406.2 MiB      0.0 MiB           1                       file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
+   123                                                             
+   124    406.2 MiB      0.0 MiB           1                       file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
+   125    406.2 MiB      0.0 MiB           1                       file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
+   126    406.2 MiB      0.0 MiB           1                       n_Q = int(perc*G.number_of_nodes())
+   127                                                             #n_Q=n_GQ[k]#9872
+   128    406.2 MiB      0.0 MiB           1                       n_Q = 9872 
+   129    406.2 MiB      0.0 MiB           1                       print(f'Size of subgraph: {n_Q}')
+   130    958.0 MiB      0.0 MiB           2                       for iter in range(iters):
+   131    406.2 MiB      0.0 MiB           1                           folder_ = f'{folder}/{iter}'
+   132    406.2 MiB      0.0 MiB           1                           folder1_ = f'{folder1}/{iter}'
+   133                                                                 #folder_ = f'{folder}'
+   134    406.2 MiB      0.0 MiB           1                           os.makedirs(f'{folder1_}', exist_ok=True)
+   135    406.2 MiB      0.0 MiB           1                           file_subgraph = f'{folder_}/subgraph.txt'
+   136    406.2 MiB      0.0 MiB           1                           file_nodes = f'{folder_}/nodes.txt'
+   137                                                                 #file_subgraph = f'raw_data/random/subgraph_QG_{n_G[k]}.txt'
+   138                                                                 #file_nodes = f'raw_data/random/nodes_QG_{n_G[k]}.txt'
+   139    406.2 MiB      0.0 MiB           1                           Q_real = read_list(file_nodes)
+   140    406.2 MiB      0.0 MiB           1                           print(f'Reading subgraph at {file_subgraph}')
+   141    406.2 MiB      0.0 MiB           1                           print(f'Reading alignment at {file_nodes}')
+   142    424.8 MiB     18.7 MiB           1                           G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
+   143    576.8 MiB    151.9 MiB           1                           A = nx.adjacency_matrix(G_Q).todense()
+   144    576.8 MiB      0.0 MiB           1                           print(G_Q)
+   145                                                                 #print(Q_real)
+   146    576.8 MiB      0.0 MiB           1                           QGS=G_Q.number_of_nodes()
+   147    576.8 MiB      0.0 MiB           1                           QGES = G_Q.number_of_edges()
+   148                                                                 #L = np.diag(np.array(np.sum(A, axis = 0)))
+   149                                                                 #eigv_G_Q, _ = linalg.eig(L - A)
+   150                                                                 #idx = eigv_G_Q.argsort()[::]   
+   151                                                                 #eigv_G_Q = eigv_G_Q[idx]
+   152                                                                 #for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
+   153                                                                 #file_real_spectrum.write(f'\n')
+   154    576.8 MiB      0.0 MiB           1                           start = time.time()
+   155    576.8 MiB      0.0 MiB           1                           if(tun[ptun]==1):
+   156                                                                     print("Alpine")
+   157                                                                     _, list_of_nodes, forb_norm = Alpine(G_Q.copy(), G.copy(),mu=1,weight=2)
+   158    576.8 MiB      0.0 MiB           1                           elif(tun[ptun]==2):
+   159    576.8 MiB      0.0 MiB           1                               print("Cone")
+   160    817.6 MiB    240.9 MiB           1                               _, list_of_nodes, forb_norm = coneGAM(G_Q.copy(), G.copy())
+   161                                                                 elif(tun[ptun]==3):
+   162                                                                     print("SGWL")
+   163                                                                     _, list_of_nodes, forb_norm = SGWLSA(G_Q.copy(), G.copy())
+   164                                                                 elif(tun[ptun]==4):
+   165                                                                     print("Alpine_Dummy")
+   166                                                                     _, list_of_nodes, forb_norm = align_new(G_Q.copy(), G.copy(),mu=1,weight=1)
+   167                                                                 elif(tun[ptun]==5):
+   168                                                                     print("Grampa")
+   169                                                                     _, list_of_nodes, forb_norm = Grampa(G_Q.copy(), G.copy())
+   170                                                                 elif(tun[ptun]==6):
+   171                                                                     print("Regal")
+   172                                                                     _, list_of_nodes, forb_norm = Regal(G_Q.copy(), G.copy())      
+   173                                                                 elif(tun[ptun]==7):
+   174                                                                     print("MDS")
+   175                                                                     _, list_of_nodes, forb_norm = MDSGA(G_Q.copy(), G.copy())
+   176                                                                 elif(tun[ptun]==8):
+   177                                                                     print("fugal")
+   178                                                                     _,list_of_nodes, forb_norm = Fugal(G_Q.copy(), G.copy())
+   179                                                                 elif(tun[ptun]==9):
+   180                                                                     print("mcmc")
+   181                                                                     list_of_nodes, forb_norm = mcAlign(G_Q.copy(), G.copy(),Q_real)
+   182                                                                 elif(tun[ptun]==10):
+   183                                                                     print("GradAlignP")
+   184                                                                     list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy())
+   185                                                                 else:
+   186                                                                     print("NO given algorithm ID")
+   187                                                                     exit()
+   188    817.6 MiB      0.0 MiB           1                           end = time.time()
+   189    817.6 MiB      0.0 MiB           1                           subgraph = G.subgraph(list_of_nodes)
+   190                                                                 
+   191    817.6 MiB      0.0 MiB           1                           PGS=subgraph.number_of_nodes()
+   192    817.6 MiB      0.0 MiB           1                           PGES = subgraph.number_of_edges()
+   193    817.6 MiB      0.0 MiB           1                           isomorphic=False
+   194    817.6 MiB      0.0 MiB           1                           if(forb_norm==0):
+   195                                                                     isomorphic=True
+   196    817.6 MiB      0.0 MiB           1                           time_diff = end - start
+   197    817.6 MiB      0.0 MiB           1                           file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
+   198    817.6 MiB      0.0 MiB        9873                           for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
+   199    919.4 MiB    101.8 MiB           1                           A = nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes)).todense()
+   200    957.8 MiB     38.4 MiB           1                           L = np.diag(np.array(np.sum(A, axis = 0)))
+   201                                         
+   202                                         
+   203                                                                 #   accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+   204    958.0 MiB      0.2 MiB           1                           accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1265
+   205                                                                 #len(Q_real)
+   206    958.0 MiB      0.0 MiB           1                           spec_norm=0
+   207    958.0 MiB      0.0 MiB           1                           file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')
+   208    958.0 MiB      0.0 MiB           1                           printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)            
+   209    958.0 MiB      0.0 MiB           1                   print('\n')
+   210    958.0 MiB      0.0 MiB           1               print('\n\n')
+
+
