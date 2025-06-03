@@ -124,8 +124,8 @@ def RunExp():
     #n_GT = [1000]
 
     #foldernames = ['sp']
-    foldernames = [ 'tw']
-    n_G = [1043]
+    #foldernames = [ 'tw']
+    #n_G = [1043]
     def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
         print('---- ',name, '----')
         print('----> Forb_norm:', forb_norm)
@@ -164,7 +164,7 @@ def RunExp():
                     file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                     file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
                     n_Q = int(perc*G.number_of_nodes())
-                    n_Q = 1000 
+                    #n_Q = 1000 
                     print(f'Size of subgraph: {n_Q}')
                     for iter in range(iters):
                         folder_ = f'{folder}/{iter}'
@@ -239,8 +239,8 @@ def RunExp():
                         L = np.diag(np.array(np.sum(A, axis = 0)))
 
 
-                        #   accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
-                        accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1000
+                        accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
+                        #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/1000
                         #len(Q_real)
                         spec_norm=0
                         file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy} {spec_norm} {time_diff} {isomorphic}\n')

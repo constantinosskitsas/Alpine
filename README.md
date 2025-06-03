@@ -1,29 +1,23 @@
 # Alpine
 ## **Introduction**
-The necessity to align two graphs, minimizing a structural distance
-metric, is prevalent in biology, chemistry, recommender systems,
-and social network analysis. Due to the problem’s NP-hardness,
-prevailing graph alignment methods follow an attributed and la-
-beled approach, for equally-size graphs, solving a linear assignment
-problem over intermediary graph representations. However, in re-
-ality we often phase unrestricted scenarios, where we seek to align
-nodes of unequally-size graphs with no additional label or attributed
-information provided. Prior graph alignment methods distort the un-
-restricted scenario, and are hence predisposed to miss high-quality
-solutions, by either adding dummy nodes to match the graph sizes
-or extracting graph-embedding to solve the assignment problem.
-To address these limitations, in this paper, we propose Alpine; a
-P a rtial Unlabeled Gra ph Ali gn me nt algorithm, inspired by shape
-matching, that maps nodes of smaller graph 𝐻 (V𝐻 , E𝐻 ) to nodes
-of a larger graph 𝐺 (V𝐺 , E𝐺 ), |V𝐻 | < |V𝐺 |, by purely operating
-on their adjacency matrices with no external labeled or attributed
-information. Extensive experimentation demonstrates that Alpine
-is more efficient and consistently surpasses state-of-the-art graph
-alignment methods using dummy nodes, in both accuracy and
-edge-disagreements, across all benchmark datasets.
-
+Several applications call to align the nodes of two graphs in a way
+that minimizes a distance function. In practicality, the graphs to
+be aligned often have unequal orders (i.e., numbers of vertices)
+and no auxiliary labels or attributes; we refer to this problem as
+partial unlabeled graph alignment. Some proposals to address this
+problem add dummy nodes to the smaller graph to even the orders
+and align the ensuing graphs or employ embeddings such as GNNs,
+which yield ad hoc node representations. Unfortunately, as we show,
+an optimal solution to equal-order graph alignment using dummy
+nodes does not imply an optimal solution to partial graph alignment.
+To address this deficiency, in this paper, we propose Alpine, a
+Partial Unlabeled Grap h Ali gn ment algorithm that solely peruses the
+graphs’ adjacency matrices, guided by a tailored objective function
+inspired by best-of-breed shape matching techniques and a state-of-
+the-art optimization method. Extensive experiments demonstrate
+that Alpine consistently surpasses state-of-the-art graph alignment
+methods in solution quality across all benchmark datasets.
 ## Execution
-The code is written in Python
 
 ### Required Libraries
 numpy, torch, scipy, networkx, matplotlib, tqdm, scikit-learn, pandas
@@ -39,5 +33,5 @@ python NoiseTest.py #: This will run Noise Experiment (Figure 3)
 Please cite our work in your publications if it helps your research:
 
 ```
-Paper under submission
+Paper accepted to KDD'25.
 ```
