@@ -717,12 +717,7 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
         Gq.add_edge(node, node)
     for node in nx.isolates(Gt):
         Gt.add_edge(node, node)
-    
-    #for i in range(n1, n):
-    #    Gq.add_node(i)
-    #    Gq.add_edge(i,i)
-    #for i in range(n2, n):
-    #   Gt.add_node(i)      
+        
     Gq.add_node(n1)
     Gq.add_edge(n1,n1)
     #mu=0.1     
@@ -736,7 +731,7 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
-    D = torch.tensor(D, dtype = torch.float64)*0.1
+    D = torch.tensor(D, dtype = torch.float64)#*0.1
     #D[-1:]*=0
     #P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
    # P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter,A)
