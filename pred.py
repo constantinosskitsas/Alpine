@@ -731,8 +731,8 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
-    D = torch.tensor(D, dtype = torch.float64)#*0.1
-    #D[-1:]*=0
+    D = torch.tensor(D, dtype = torch.float64)
+    #D=D*0.1 #only in Facebook dataset.
     #P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter)
    # P, forbnorm,row_ind,col_ind = Alpine_pp(A[:n1,:n1], B, mu*D, niter,A)
     P, forbnorm,row_ind,col_ind = Alpine_pp_new(A[:n1,:n1], B, mu*D, niter,A)
