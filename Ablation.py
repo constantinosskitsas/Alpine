@@ -66,8 +66,8 @@ for i in range(1):
     print(len(list2_sorted))
     print(list1_sorted)
     print(list2_sorted)
-    print("malaka",np.sum(np.array(Q_real)==np.array(list1_sorted))/len(Q_real))
-    print("malaka",np.sum(np.array(Q_real)==np.array(list2_sorted))/len(Q_real))
+    print(np.sum(np.array(Q_real)==np.array(list1_sorted))/len(Q_real))
+    print(np.sum(np.array(Q_real)==np.array(list2_sorted))/len(Q_real))
     sys.exit() 
     accuracy =accuracy+ tempAcc
     forb_norm1=forb_norm+forb_norm1
