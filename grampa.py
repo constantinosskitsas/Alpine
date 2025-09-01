@@ -1,13 +1,10 @@
 import numpy as np
-#from scipy.optimize import linear_sum_assignment
 from numpy.linalg import inv
 from numpy.linalg import eigh,eig
 import networkx as nx 
 import random
 from math import floor, log2
-#from lapsolver import solve_dense
 import scipy as sci
-#from lapsolver import solve_dense
 from numpy import inf, nan
 import scipy.sparse as sps
 import math

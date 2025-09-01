@@ -34,10 +34,7 @@ def clean_matrix(matrix):
 
 def convertToPermHungarian2(M, n, m):
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    #P = torch.zeros((n,m), dtype = torch.float64)
     P= np.zeros((n,m))
-    #P= np.zeros((n,n))
-    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     ans = []
     for i in range(n):
         P[row_ind[i]][col_ind[i]] = 1
@@ -45,30 +42,13 @@ def convertToPermHungarian2(M, n, m):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
-def convertToPermHungarian(M, n1, n2):
-    row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    n = len(M)
 
-    P = np.zeros((n, n))
-    ans = []
-    for i in range(n):
-        P[row_ind[i]][col_ind[i]] = 1
-        if (row_ind[i] >= n1) or (col_ind[i] >= n2):
-            continue
-        ans.append((row_ind[i], col_ind[i]))
-    return P, ans
 
 def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
     n1 = len(Gq.nodes())
     n2 = len(Gt.nodes())
     n = max(n1, n2)
     nmin= min(n1,n2)
-    #for i in range(n1, n):
-    #    Gq.add_node(i)
-    #    Gq.add_edge(i,i)
-    #for i in range(n2, n):
-    #    Gt.add_node(i)
-
     A = nx.to_numpy_array(Gq)
     B = nx.to_numpy_array(Gt)
     p_s, cost_s, idx2node_s = DataIO.extract_graph_info(
@@ -111,9 +91,7 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
             idx2node_s, idx2node_t, ot_dict, weights=None, predefine_barycenter=False,
             cluster_num=clus, partition_level=level, max_node_num=200
         )
-    #pairs = np.array(pairs_name)[::-1].T
     cost_matrix=trans*1
-    #cost_matrix=clean_matrix(cost_matrix)
     P2,_ = convertToPermHungarian2(cost_matrix, n1, n2)
 
     forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
@@ -121,11 +99,4 @@ def SGWLSA(Gq,Gt, mn=1, max_cpu=40,clus=2,level=3):
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm
-    cost_matrix=trans
-    P2,_ = convertToPermHungarian(cost_matrix, n, n)
-
-    forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
-    P_perm,ans = convertToPermHungarian(cost_matrix, n1, n2)
-    list_of_nodes = []
-    for el in ans: list_of_nodes.append(el[1])
-    return ans, list_of_nodes, forbnorm
+    

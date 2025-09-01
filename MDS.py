@@ -108,24 +108,15 @@ def MDSGA(Gq,Gt):
     n1 = len(Gq.nodes())
     n2 = len(Gt.nodes())
     n = max(n1, n2)
-    nmin= min(n1,n2)
-    #for i in range(n1, n):
-    #    Gq.add_node(i)
-    #    Gq.add_edge(i,i)
-    #for i in range(n2, n):
-    #    Gt.add_node(i)
-        
+    nmin= min(n1,n2)  
+    
 
     A = nx.to_numpy_array(Gq)
     B = nx.to_numpy_array(Gt)
     A = csr_matrix(A)
     B = csr_matrix(B)
-    #A.data = np.array(A.data)
-    #B.data = np.array(B.data)
     adj_s_normalized = normalize_adj(A)
     adj_t_normalized = normalize_adj(B)
-    #A.data = np.array(A.data)
-    #B.data = np.array(B.data)
 
     print("adj_s_normalized")
     adj_s_normalized = compute_shortest_path(adj_s_normalized)
@@ -152,16 +143,12 @@ def MDSGA(Gq,Gt):
         gw_init=True,
         return_stress=False
     )
-    print("JOinMS")
     Z1, Z2, P = JMDS.fit_transform(
         torch.from_numpy(adj_s_normalized),
         torch.from_numpy(adj_t_normalized),
         w1=w1,
         w2=w2#,
-        #a=torch.from_numpy(weight_s),
-        #b=torch.from_numpy(weight_t),
     )
-    print("done")
     cost_matrix = P.numpy()
     P2,_ = convertToPermHungarian2(cost_matrix, n1, n2)
 

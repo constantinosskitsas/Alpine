@@ -1,11 +1,10 @@
 import numpy as np
-from pred import convex_initSM, align_SM, align_new, Alpine, Fugal
+from pred import  align_new, Alpine, Fugal
 from help_functions import read_graph
 import torch
 import scipy
 import networkx as nx
 import numpy.linalg as linalg
-import matplotlib.pyplot as plt
 import sys
 from numpy import linalg as LA
 from help_functions import read_real_graph, read_list
@@ -29,6 +28,9 @@ import csv
 from datetime import datetime
 from functools import wraps
 import threading
+
+#We added the resource_monitor for memory evaluation, you can enable it by removing the comments.
+
 
 def resource_monitor(log_file="resource_log.csv", interval=0.1):
     def decorator(func):
@@ -78,17 +80,7 @@ def RunExp():
     #foldernames = [  'douban']
     #n_G = [  3906]
     #foldernames = [ 'netscience']
-    #n_G = [ 379]
-    #foldernames=["random/subgraph_DG_80","random/subgraph_DG_160","random/subgraph_DG_320","random/subgraph_DG_640","random/subgraph_DG_1280","random/subgraph_DG_2560","random/subgraph_DG_5120"]
-    #foldernames1=["random/subgraph_QG_80","random/subgraph_QG_160","random/subgraph_DG_QG","random/subgraph_QG_640","random/subgraph_QG_1280","random/subgraph_QG_2560","random/subgraph_QG_5120"]
-    #n_G = [ 80,160,320,640,1280,2560,5120]
-    #foldernames=["random/subgraph_DG_5120"]
-    #foldernames1=["random/subgraph_QG_5120"]
     #n_G = [5120]
-    #foldernames = [ 'highschool']
-    #n_G = [ 327]
-    #foldernames = [  'highschool']
-    #n_G = [ 327]
     #n_G = [575,5002,11586]
     #n_GQ = [453,4623,8325]
     #n_GT = [437,4483,7555]
@@ -106,13 +98,6 @@ def RunExp():
     tuns=["Alpine","Cone","SGWL","Alpine_Dummy","Grampa","Regal","Fugal","mcmc","GradP"]
     tun=[1,2,3,4,5,6,8,9,10]
 
-    #tuns=["Alpine_Dummy","Grad","mcmc"]
-
-
-    #tun = [1,8,10]
-    #nL=["_Noise5","_Noise10","_Noise15","_Noise20","_Noise25"]
-    #tuns=["Alpine"]
-    #tun=[4,8]
 
     #tun = [1]
     #n_G = [4039]
@@ -148,11 +133,8 @@ def RunExp():
             G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
             print(G)
             DGS=G.number_of_nodes()
-
     # Get the number of edges
             DGES = G.number_of_edges()
-            
-            #perc=percs[0]
             for perc in percs: 
                 for ptun in range(len(tun)): 
                     folder = f'./{folderall}/{foldernames[k]}/{int(perc*100)}'
@@ -181,15 +163,8 @@ def RunExp():
                         G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
                         A = nx.adjacency_matrix(G_Q).todense()
                         print(G_Q)
-                        #print(Q_real)
                         QGS=G_Q.number_of_nodes()
                         QGES = G_Q.number_of_edges()
-                        #L = np.diag(np.array(np.sum(A, axis = 0)))
-                        #eigv_G_Q, _ = linalg.eig(L - A)
-                        #idx = eigv_G_Q.argsort()[::]   
-                        #eigv_G_Q = eigv_G_Q[idx]
-                        #for el in eigv_G_Q: file_real_spectrum.write(f'{el} ')
-                        #file_real_spectrum.write(f'\n')
                         start = time.time()
                         if(tun[ptun]==1):
                             print("Alpine")
@@ -247,33 +222,4 @@ def RunExp():
                         printR(tuns[ptun],forb_norm,accuracy,0,time_diff,isomorphic)            
                 print('\n')
             print('\n\n')
-
-
 RunExp()
-sys.exit()
-
-
-plotall = True
-
-for i in range(5):
-    G = read_graph(f'./Data/G_{i}.txt')
-    Gsmall = read_graph(f'./Data/Gsmall_{i}.txt')
-
-    eigv_Gsmall, _ = linalg.eig(nx.adjacency_matrix(Gsmall).todense())
-    idx = eigv_Gsmall.argsort()[::]   
-    eigv_Gsmall = eigv_Gsmall[idx]
-
-    _, list_of_nodes, forbnorm = align_SM(Gsmall.copy(), G.copy())
-    eigv_G_induced, _ = linalg.eig(nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes[0:Gsmall.number_of_nodes()])).todense())
-    idx = eigv_G_induced.argsort()[::]   
-    eigv_G_induced = eigv_G_induced[idx]
-    print(list_of_nodes)
-    print(f'-----> {forbnorm}')
-
-    _, list_of_nodes2, forbnorm = align_new(Gsmall.copy(), G.copy())
-    eigv_G_induced2, _ = linalg.eig(nx.adjacency_matrix(nx.induced_subgraph(G, list_of_nodes2[0:Gsmall.number_of_nodes()])).todense())
-    idx = eigv_G_induced2.argsort()[::]   
-    eigv_G_induced2 = eigv_G_induced2[idx]
-    print(list_of_nodes2)
-    print(f'-----> {forbnorm}')
-

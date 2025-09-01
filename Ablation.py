@@ -18,7 +18,7 @@ from Grad.grad import gradMain
 from mcmc.mc import mcAlign
 foldernames = [ 'arenas','netscience', 'multimanga', 'highschool', 'voles','facebook','dblp']
 n_G = [ 1133,379, 1004, 327, 712,1034,9916,9872]
-os.environ["MKL_NUM_THREADS"] = "5"
+os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(5)
 foldernames = [ 'netscience']
 n_G = [379]

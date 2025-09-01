@@ -25,8 +25,8 @@ numpy, torch, scipy, networkx, matplotlib, tqdm, scikit-learn, pandas
 
 ### How to run experiments :
 ```shell
-python PartialTest.py #: This will run Size Ratio Experiment (Figure 2)
-python NoiseTest.py #: This will run Noise Experiment (Figure 3)
+python PartialTest.py #: This will run Size Ratio Experiment (Figure 5)
+python NoiseTest.py #: This will run Noise Experiment (Figure 6)
 ```
 
 ## Reference

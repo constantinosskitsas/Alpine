@@ -35,18 +35,7 @@ def convertToPermHungarian2(M, n, m):
             continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
-def convertToPermHungarian(M, n1, n2):
-    row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    n = len(M)
 
-    P = np.zeros((n, n))
-    ans = []
-    for i in range(n):
-        P[row_ind[i]][col_ind[i]] = 1
-        if (row_ind[i] >= n1) or (col_ind[i] >= n2):
-            continue
-        ans.append((row_ind[i], col_ind[i]))
-    return P, ans
 def G_to_Adj1(G1, G2):
     # Get the sizes of the two graphs
     size1 = G1.shape[0]
