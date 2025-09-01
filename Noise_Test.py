@@ -60,10 +60,8 @@ for k in range(0,len(foldernames)):
         G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         print(G)
         DGS=G.number_of_nodes()
-
-# Get the number of edges
-        DGES = G.number_of_edges()
-        
+    # Get the number of edges
+        DGES = G.number_of_edges()       
         perc=percs[0]
         for noiseL in nL: 
             for ptun in range(len(tun)): 
