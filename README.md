@@ -17,6 +17,7 @@ inspired by best-of-breed shape matching techniques and a state-of-
 the-art optimization method. Extensive experiments demonstrate
 that Alpine consistently surpasses state-of-the-art graph alignment
 methods in solution quality across all benchmark datasets.
+
 ## Execution
 
 ### Required Libraries
@@ -33,5 +34,21 @@ python NoiseTest.py #: This will run Noise Experiment (Figure 3)
 Please cite our work in your publications if it helps your research:
 
 ```
-Paper accepted to KDD'25.
+inproceedings{10.1145/3711896.3736839,
+author = {Petsinis, Petros and Skitsas, Konstantinos and Ranu, Sayan and Mottin, Davide and Karras, Panagiotis},
+title = {Alpine: Partial Unlabeled Graph Alignment},
+year = {2025},
+isbn = {9798400714542},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3711896.3736839},
+doi = {10.1145/3711896.3736839},
+booktitle = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V.2},
+pages = {2315–2325},
+numpages = {11},
+keywords = {partial graph alignment, quadratic assignment problem},
+location = {Toronto ON, Canada},
+series = {KDD '25}
+}
+
 ```
