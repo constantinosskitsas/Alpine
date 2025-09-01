@@ -12,7 +12,7 @@ from numpy import linalg as LA
 from help_functions import read_real_graph, read_list
 import time
 import os
-from aa import generate_new_id,create_new_folder,get_max_previous_id 
+from resultsfolder import generate_new_id,create_new_folder,get_max_previous_id 
 from grampa import Grampa
 from Grad.grad import gradMain
 from mcmc.mc import mcAlign

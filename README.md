@@ -28,6 +28,8 @@ numpy, torch, scipy, networkx, matplotlib, tqdm, scikit-learn, pandas
 python PartialTest.py #: This will run Size Ratio Experiment (Figure 5)
 python NoiseTest.py #: This will run Noise Experiment (Figure 6)
 ```
+### Example with real graphs:
+Please see Example_RG.ipynb to run example with real graphs and how to run the algorithm.
 
 ## Reference
 

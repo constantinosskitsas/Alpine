@@ -40,5 +40,5 @@ def read_real_graph(n, name_):
         u = int(u_v[0])
         v = int(u_v[1])
         G.add_edge(u, v)
-    print(f'Done {name_} Peter...')
+    print(f'Done {name_} ...')
     return G   

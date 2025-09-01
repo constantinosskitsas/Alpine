@@ -11,7 +11,7 @@ from numpy import linalg as LA
 from help_functions import read_real_graph, read_list
 import time
 import os
-from aa import generate_new_id,create_new_folder,get_max_previous_id 
+from resultsfolder import generate_new_id,create_new_folder,get_max_previous_id 
 from conealign import coneGAM
 from sgwl import SGWLSA
 from grampa import Grampa
@@ -41,9 +41,7 @@ def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
     print('----> Accuracy:', accuracy)
-    print('----> Spec_norm:', spec_norm)
     print('----> Time:', time_diff)
-    print('----> Isomorphic:', isomorphic)
     print()     
 
 
