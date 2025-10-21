@@ -37,7 +37,7 @@ warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
 
 class GradAlign:
-    def __init__(self, G1, G2, att_s, att_t, att_aug_s, att_aug_t, k_hop, hid, alignment_dict, alignment_dict_reversed, train_ratio, idx1_dict, idx2_dict, alpha, beta):
+    def __init__(self, G1, G2, att_s, att_t, att_aug_s, att_aug_t, k_hop, hid, alignment_dict, alignment_dict_reversed, train_ratio, idx1_dict, idx2_dict,anchors_GQ,anchors_G, alpha, beta):
 
         self.G1 = G1
         self.G2 = G2
@@ -79,6 +79,8 @@ class GradAlign:
         self.eval_mode = True
         self.cea_mode = False
         self.fast_mode = False
+        self.anchors_GQ=anchors_GQ
+        self.anchors_G=anchors_G
         #self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # disable temporarily because of error
     
     def run_algorithm(self):  # anchor is not considered yet
@@ -100,18 +102,25 @@ class GradAlign:
         if self.train_ratio == 0:
             seed_list1 = []
             seed_list2 = []
+            print("here?")
         else:
-            seed_list1 = list(np.random.choice(list(self.alignment_dict.keys()), int(
-                self.train_ratio * len(self.alignment_dict)), replace=False))
-            seed_list2 = [self.alignment_dict[seed_list1[x]]
-                          for x in range(len(seed_list1))]
+            print("bette here")
+            #seed_list1 = list(np.random.choice(list(self.alignment_dict.keys()), int(
+            #    self.train_ratio * len(self.alignment_dict)), replace=False))
+            #seed_list2 = [self.alignment_dict[seed_list1[x]]
+            #              for x in range(len(seed_list1))]
+            #seed_list2 = list(self.anchors_GQ)
+            #seed_list1 = list(self.anchors_G)
+            seed_list2 = list(self.anchors_GQ) if self.anchors_GQ is not None else []
+            seed_list1 = list(self.anchors_G) if self.anchors_G is not None else []
             self.pre_seed_list1 = seed_list1
             self.pre_seed_list2 = seed_list2
             self.G1, self.G2 = seed_link(
                 seed_list1, seed_list2, self.G1, self.G2)
 
             self.H = self.calculateH(self.gamma)
-
+        print(seed_list2)
+        print(seed_list1)
         nx.set_edge_attributes(
             self.G1, values=self.default_weight, name='weight')
         nx.set_edge_attributes(
@@ -668,7 +677,7 @@ def seed_link(seed_list1, seed_list2, G1, G2):
             if not G1.has_edge(seed_list1[i], seed_list1[j]) and G2.has_edge(seed_list2[i], seed_list2[j]):
                 G1.add_edges_from([[seed_list1[i], seed_list1[j]]])
                 k += 1
-    #print('Add seed links : {}'.format(k), end='\t')
+    print('Add seed links : {}'.format(k), end='\t')
     return G1, G2
 
 

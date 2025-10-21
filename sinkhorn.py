@@ -181,7 +181,7 @@ def greenkhorn(a, b, M, reg, numItermax=10000, stopThr=1e-9, verbose=False,
     else:
         return G
 
-def sinkhorn(a, b, C, reg=1e-1, method='sinkhorn', maxIter=1000, tau=1e3,
+def sinkhorn(a, b, C, reg=1e-1, method='sinkhorn', maxIter=1500, tau=1e5,
              stopThr=1e-9, verbose=False, log=False, warm_start=None, eval_freq=10, print_freq=200, **kwargs):
     """
     Solve the entropic regularization optimal transport

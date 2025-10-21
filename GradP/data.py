@@ -599,12 +599,12 @@ def augment_attributes(Gs, Gt, attr_s, attr_t, num_attr, version = "katz", khop 
                                               alpha = 0.01,
                                               beta = 1,
                                               normalized = False)
-        if min(attdict_s.values())<0:
-            print("arnitiko")
-            version="khop"
-        elif min(attdict_t.values())<0:
-            version="khop"
-            print("arnitiko")
+        #if min(attdict_s.values())<0:
+        #    print("arnitiko")
+        #    version="khop"
+        #elif min(attdict_t.values())<0:
+        #    version="khop"
+        #    print("arnitiko")
     elif version == "eigenvector":
 
         attdict_s = nx.eigenvector_centrality(Gs, max_iter = 500, tol = 1e-8)
@@ -627,7 +627,7 @@ def augment_attributes(Gs, Gt, attr_s, attr_t, num_attr, version = "katz", khop 
         attdict_t = nx.closeness_centrality(Gt)
 
         
-    if version == "khop":
+    elif version == "khop":
         
         attdict_s = {key : len(nx.single_source_shortest_path_length
                             (Gs, source = key, cutoff=1))                     
