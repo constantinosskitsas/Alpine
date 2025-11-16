@@ -75,10 +75,11 @@ def convertToPermHungarian2new(row_ind, col_ind, n, m):
     P = torch.zeros((n,m), dtype = torch.float64)
     #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     ans = []
+    n = max(len(row_ind), len(col_ind))
     for i in range(n):
-        P[row_ind[i]][col_ind[i]] = 1
-        if (row_ind[i] >= n) or (col_ind[i] >= m):
-            continue
+        #P[row_ind[i]][col_ind[i]] = 1
+        #if (row_ind[i] >= n) or (col_ind[i] >= m):
+        #    continue
         ans.append((row_ind[i], col_ind[i]))
     return P, ans
 

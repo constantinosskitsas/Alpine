@@ -1,0 +1,6 @@
+{
+    "dataset": "ppi",
+    "epoch": 500,
+    "bases": 4,
+    "step_size": 1
+  } 

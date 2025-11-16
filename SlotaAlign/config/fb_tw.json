@@ -1,0 +1,6 @@
+{
+    "dataset": "fb_tw",
+    "epoch": 5000,
+    "bases": 4,
+    "step_size": 1
+  } 
