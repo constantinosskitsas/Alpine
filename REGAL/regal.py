@@ -119,7 +119,60 @@ def Regal(Gq,Gt):
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm
+def RegalATT(Gq,Gt,FQ=None,Ft=None):
+    dummy=False
+    args = {
+    'attributes': None,
+    'attrvals': 2,
+    'dimensions': 128,  # useless
+    'k': 10,            # d = klogn
+    'untillayer': 2,    # k
+    'alpha': 0.01,      # delta
+    'gammastruc': 1.0,
+    'gammaattr': 1.0,
+    'numtop': 10,
+    'buckets': 2
+    }
+    # adj = G_to_Adj(Src, Tar).A
+    n1 = len(Gq.nodes())
+    n2 = len(Gt.nodes())
+    n = max(n1, n2)
+    nmin= min(n1,n2)
+    if (dummy):
+        for i in range(n1, n):
+            Gq.add_node(i)
+            Gq.add_edge(i,i)
+        for i in range(n2, n):
+            Gt.add_node(i)
+        
 
+    A = nx.to_numpy_array(Gq)
+    B = nx.to_numpy_array(Gt)
+    if dummy:
+        adg =G_to_Adj(A, B)
+    else:
+
+        adj = G_to_Adj1(A, B)
+
+    # global REGAL_args
+    # REGAL_args = parse_args()
+
+    args['attributes']= np.vstack([FQ, Ft])
+    embed = learn_representations(adj, args)
+    if(dummy):
+        emb1, emb2 = get_embeddings(embed)
+    else:
+        emb1, emb2 = get_embeddings1(embed,n1)
+    alignment_matrix, cost_matrix = get_embedding_similarities(
+        emb1, emb2, num_top=10)
+    cost_matrix=cost_matrix*-1
+    P2,_ = convertToPermHungarian2(cost_matrix, n1, n2)
+
+    forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
+    P_perm,ans = convertToPermHungarian2(cost_matrix, n1, n2)
+    list_of_nodes = []
+    for el in ans: list_of_nodes.append(el[1])
+    return ans, list_of_nodes, forbnorm
 
 # Should take in a file with the input graph as edgelist (REGAL_args['input)
 # Should save representations to REGAL_args['output

@@ -42,6 +42,6 @@ if __name__ == '__main__':
     import time
     t0 = time.time()
     rwr_score1, rwr_score2 = rwr_scores(G1, G2, anchor_links)
-    print('running time: %.2f' % (time.time() - t0))
+    #print('running time: %.2f' % (time.time() - t0))
     np.savez('../dataset/rwr_emb_foursquare-twitter.npz', rwr_score1=rwr_score1, rwr_score2=rwr_score2)
-    print('test finished.')
+    #print('test finished.')

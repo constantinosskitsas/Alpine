@@ -84,7 +84,6 @@ class GradAlign:
         #self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # disable temporarily because of error
     
     def run_algorithm(self):  # anchor is not considered yet
-
         iteration = 0
 
         #Construct GNN
@@ -113,14 +112,10 @@ class GradAlign:
             #seed_list1 = list(self.anchors_G)
             seed_list2 = list(self.anchors_GQ) if self.anchors_GQ is not None else []
             seed_list1 = list(self.anchors_G) if self.anchors_G is not None else []
-            self.pre_seed_list1 = seed_list1
-            self.pre_seed_list2 = seed_list2
             self.G1, self.G2 = seed_link(
                 seed_list1, seed_list2, self.G1, self.G2)
 
             self.H = self.calculateH(self.gamma)
-        print(seed_list2)
-        print(seed_list1)
         nx.set_edge_attributes(
             self.G1, values=self.default_weight, name='weight')
         nx.set_edge_attributes(

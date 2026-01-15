@@ -28,10 +28,10 @@ def SlotaA(Aadj1,Badj1,Afeat,Bfeat,dataset):
     Badj=nx.to_numpy_array(Badj1)
     #Aadj, Badj, Afeat, Bfeat, ground_truth = myload(args.dataset, args.edge_noise)
     Adim, Bdim = Afeat.shape[0], Bfeat.shape[0]
-    print(np.shape(Aadj))
-    print(np.shape(Badj))
-    print(Adim)
-    print(Bdim)
+    #print(np.shape(Aadj))
+    #print(np.shape(Badj))
+    #print(Adim)
+    #print(Bdim)
     Ag = dgl.graph(np.nonzero(Aadj), num_nodes=Adim)
     Bg = dgl.graph(np.nonzero(Badj), num_nodes=Bdim)
     Afeat -= Afeat.mean(0)
@@ -78,7 +78,7 @@ def SlotaA(Aadj1,Badj1,Afeat,Bfeat,dataset):
     alpha0 = np.ones(layers+2).astype(np.float32)/(layers+2)
     beta0 = np.ones(layers+2).astype(np.float32)/(layers+2)
     for ii in range(args.joint_epoch):
-        print(ii,"outside ", args.joint_epoch)
+        #print(ii,"outside ", args.joint_epoch)
         alpha = torch.autograd.Variable(torch.tensor(alpha0)).to(device)
         alpha.requires_grad = True
         beta = torch.autograd.Variable(torch.tensor(beta0)).to(device)

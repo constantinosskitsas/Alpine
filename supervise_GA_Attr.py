@@ -16,6 +16,8 @@ import pandas as pd
 from JOENA.Joena_main import JOENA
 from SlotaAlign.SlotaAlign_main import SlotaA
 from NextAlign.NextA import NextAlign
+from Parrot.parrot_main import Parrot
+from REGAL.regal import RegalATT
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
 folderall = 'data3_'
@@ -84,18 +86,19 @@ def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
     I_p = torch.zeros((m, m + 1), dtype=torch.float64)
     for i in range(m):
         I_p[i, i] = 1
-    #SimOH=one_hop_similarity_matrix(A,B,gtA,gtB)
+    SimOH=one_hop_similarity_matrix(A,B,gtA,gtB)
     #SimOH1=one_hop_similarity(A,B,gtA,gtB)
-    #Sim2H=two_hop_similarity_matrix(A,B,gtA,gtB)
+    Sim2H=two_hop_similarity_matrix(A,B,gtA,gtB)
     #cost1H=1-SimOH
     #cost2H=1-Sim2H
     #costGT=cost1H#+cost2H
     #costGT=costGT*5
+    SimC=SimOH+Sim2H
+    #removed cost
     costGT=one_hop_cost_neighbors(A,B,gtA,gtB)
-    costGT=costGT+two_hop_cost_neighbors(A,B,gtA,gtB)
+    #costGT=costGT+two_hop_cost_neighbors(A,B,gtA,gtB)
     dummy_row = torch.zeros((1, costGT.shape[1]), dtype=costGT.dtype, device=costGT.device)
-    costGT = torch.cat([costGT, dummy_row], dim=0)
-    #diff = torch.abs(SimOH - SimOH1)
+    costGT = torch.cat([costGT, dummy_row], dim=0)*0
     print("Here")
     #if torch.any(diff > 0.001):
     #    print("Matrices differ")
@@ -128,13 +131,13 @@ def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
     A0 = np.mean(np.abs(feat))
     for outer in range(10):
         for it in range(1, 11):
-            deriv= (-4*I_p.T @ (A - I_p @ Pi @ B @ Pi.T @ I_p.T) @ I_p @ Pi @ B)*dd + outer * (mat_ones - 2 * Pi) + K*2
+            deriv= (-4*I_p.T @ (A - I_p @ Pi @ B @ Pi.T @ I_p.T) @ I_p @ Pi @ B)*dd + outer * (mat_ones - 2 * Pi) + K+costGT
             S0 = deriv.abs().mean().item()  # magnitude of structural gradient
             gamma_a = gamma * S0 / (A0 + 1e-4)
-            deriv = deriv + gamma_a * (feat)+costGT*1
+            deriv = deriv + gamma_a * (feat)
             #print(np.max(gamma_a*feat))
-            deriv=deriv/5
-            q=ot.sinkhorn(ones_augm_, ones_, deriv, 1.0, numItermax = 1500, stopThr = 1e-9)
+            #deriv=deriv/5
+            q=ot.sinkhorn(ones_augm_, ones_, deriv, 1.0, numItermax = 1000, stopThr = 1e-6)
             
             alpha = 2 / float(2 + it)
             Pi[:m, :n] = Pi[:m, :n] + alpha * (q[:m, :n] - Pi[:m, :n])
@@ -447,25 +450,46 @@ def two_hop_similarity_matrix(A, B, gtA, gtB):
     sim[denom != 0] = 2 * C[denom != 0] / denom[denom != 0]
 
     return sim
-iters=1
+iters=5
 tun=[1,10,11,12]
-tuns=["Alpine","Grad","JOENA","SlotAlign","NextAlign"]
-tun=[13]
-tuns=["NextAlign"]
+tuns=["Alpine","Regal","GradP","JOENA","SlotAlign","NextAlign","Parrot"]
+#SUperivtuns=["Alpine",","GradP","JOENA",","NextAlign","Parrot"]
+#Supervitun=[1,10,11,13,14]
+
+tun=[1,6,10,11,12,13,14]
+tuns=["Alpine","Parrot","NextAlign"]
 nL=["testing"]
 foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi','cora','foursquare','phone']
 n_G2 = [1118,5712,9872,1043,1767,2708,5120,1000] #s
-n_G=[3906,6010,9916,1043,1767,2708,5313,1003] #t
+n_G=   [3906,6010,9916,1043,1767,2708,5313,1003] #t
 gt_size=[1118,5174,6325,1043,1767,2708,1609,1000]
 attrN=[True,True,True,False,True,True,False,False]
-AlpiS=[0.1, 0.1, 0.1, 1.0,  0.1,  0.1,1.0,4]
-ratio=0.20
+foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi','cora','phone']
+n_G2 = [1118,5712,9872,1043,1767,2708,1000] #s
+n_G=   [3906,6010,9916,1043,1767,2708,1003] #t
+gt_size=[1118,5174,6325,1043,1767,2708,1000]
+attrN=[True,True,True,False,True,True,False,False]
+
+
+#foldernames=['acm_dblp']
+#n_G2 = [9872] #s
+#n_G=   [9916] #t
+#gt_size=[6325]
+#attrN=[True]
+
+
+
+ratio=0.1
+
 #douban
-foldernames=['phone']
-n_G2 = [1000] #s
-n_G=[1003] #t
-gt_size=[1000]
-attrN=[False]
+#foldernames=['ppi']
+#n_G2 = [1767] #s
+#n_G=[1767] #t
+#gt_size=[1767]
+tun=[1]
+tuns=["Alpine"]
+#attrN=[True]
+
 for k in range(0,len(foldernames)):
         #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         G = read_real_graph(n = n_G[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_edge.txt')
@@ -482,7 +506,7 @@ for k in range(0,len(foldernames)):
                 file_A_results = open(f'{folder1}/Thesis_results.txt', 'w')
                 file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 
-                if (foldernames[k]=="foursquare" or foldernames[k]=="phone"):
+                if (foldernames[k]=="foursquare" or foldernames[k]=="phone"or foldernames[k]=="fb_tw"):
                         F1=np.zeros((n_G2[k],1))
                         F2=np.zeros((n_G[k],1))
                 else:
@@ -506,6 +530,8 @@ for k in range(0,len(foldernames)):
                     csv2=data['x2']
                     csv1=data['x1']
                 for iter in range(iters):
+                    #if( iter!=2):
+                    #    continue
                     print("iter",iter)
                     if (foldernames[k]=="douban" or foldernames[k]=="acm_dblp"):
                         F2=csv2
@@ -532,7 +558,6 @@ for k in range(0,len(foldernames)):
                         for line in f:
                             a, b = line.strip().split()
                             pairs.append((int(a), int(b)))
-
 # ✅ Find the max node ID in each graph
                     max_A = n_G2[k]#max(a for a, b in pairs)
                     max_B = n_G2[k]#max(b for a, b in pairs)
@@ -565,17 +590,17 @@ for k in range(0,len(foldernames)):
                     anchors_G = data_GT[:, 1].tolist()
                     anchors_GQ = data_GT[:, 0].tolist()
                     #G1,G1_Q=synchronize_graphs(G,G_Q,anchors_G,anchors_GQ)
-                    print(max(anchors_G)," value")
-                    print(max(anchors_GQ)," value")
                     print(np.shape(F2))
                     print("G_Q",G_Q.number_of_edges())
                     print("G",G.number_of_edges())
                     if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
                         anchors_G = data_GT[:, 0].tolist()
                         anchors_GQ = data_GT[:, 1].tolist()
-
-                    G1,G1_Q=seed_link(anchors_G,anchors_GQ,G,G_Q)
-                    if (foldernames[k]!="foursquare" and foldernames[k]!="phone"):
+                    G1=G
+                    G1_Q=G_Q
+                    print("Size of anchors_G:", len(anchors_G))
+                    print("Size of anchors_GQ:", len(anchors_GQ))
+                    if (foldernames[k]!="foursquare" and foldernames[k]!="phone"and foldernames[k]!="fb_tw"):
                         
                         F2_n,F1_n=synchronize_features(F2,F1,anchors_G,anchors_GQ)
                     else:
@@ -589,10 +614,15 @@ for k in range(0,len(foldernames)):
                     if(tun[ptun]==1):
                         print("Alpine")
                         mun=0.1
+                        #mun=0
                         #if(foldernames[k]=="fb_tw" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
                         if(attrN[k]==False):
                             mun=1
+                            G1,G1_Q=seed_link(anchors_G,anchors_GQ,G,G_Q)
                         _, list_of_nodes, forb_norm = Alpine_supervised(G1_Q.copy(), G1.copy(),F1_n,F2_n,anchors_GQ,anchors_G,mun,weight=2)                    
+                    elif(tun[ptun]==6):
+                            print("Regal")
+                            _, list_of_nodes, forb_norm = RegalATT(G_Q.copy(), G.copy(),F1_n,F2_n)      
                     elif(tun[ptun]==10):
                         print("GradAlignP")
                         list_of_nodes, forb_norm = gradPMain(G_Q.copy(), G.copy(),F1.copy(),F2.copy(),anchors_GQ=anchors_GQ,anchors_G=anchors_G)
@@ -648,7 +678,28 @@ for k in range(0,len(foldernames)):
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])
-                    
+                    elif(tun[ptun]==14):
+                        forb_norm=1
+                        print("Parrot")
+                        if foldernames[k] in ["acm_dblp","ppi","cora"]:
+                            print("in")
+                            data_GT1 = data_GT[:, [1, 0]]  # swap columns
+                            #data_GT1=data_GT
+                            
+                        else:
+                            data_GT1=data_GT
+                        similarity = Parrot(foldernames[k],G1_Q.copy(),G1.copy(),F1_n.copy(),F2_n.copy() ,data_GT1)
+                        #similarity = Parrot(foldernames[k],G1.copy(),G1_Q.copy(),F2_n,F1_n,data_GT1)
+
+                        if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
+                            similarity=similarity
+                        
+                        #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
+                        P2, row_ind, col_ind = PermHungarian(similarity)
+                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
+                        _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
+                        list_of_nodes = []
+                        for el in ans: list_of_nodes.append(el[1])                    
                     
                     end = time.time()
                     subgraph = G.subgraph(list_of_nodes)
@@ -662,8 +713,8 @@ for k in range(0,len(foldernames)):
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
                     spec_norm=0
                     #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
-                    accuracy1 = np.sum(np.array(A_to_B)==np.array(list_of_nodes))/gt_size[0]
-                    accuracy2 = np.sum(np.array(B_to_A)==np.array(list_of_nodes))/gt_size[0]
+                    accuracy1 = np.sum(np.array(A_to_B)==np.array(list_of_nodes))/gt_size[k]
+                    accuracy2 = np.sum(np.array(B_to_A)==np.array(list_of_nodes))/gt_size[k]
                     accuracy=0
                     if ({foldernames[k]}=="douban" or{foldernames[k]}=="allmv_tmdb" ):
                         accuracy=accuracy2

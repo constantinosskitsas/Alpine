@@ -2,12 +2,16 @@ import numpy as np
 import pandas as pd
 
 # Load original feature matrices
-F1 = np.loadtxt('./Data/data/allmv_tmdb/allmv_tmdb_s_feat.txt', dtype=float)
-F2 = np.loadtxt('./Data/data/allmv_tmdb/allmv_tmdb_t_feat.txt', dtype=float)
-
+#F1 = pd.read_csv(f"./Data/Full-dataset/attribute/DBLPattr1.csv", header=None).iloc[:, 1:].to_numpy()
+#F2 = pd.read_csv(f"./Data/Full-dataset/attribute/DBLPattr2.csv", header=None).iloc[:, 1:].to_numpy()
+F1 = np.loadtxt('./Data/data/acm_dblp/acm_dblp_s_feat.txt', dtype=float)
+F2 = np.loadtxt('./Data/data/acm_dblp/acm_dblp_t_feat.txt', dtype=float)
+data = np.load(f'JOENA/datasets/ACM-DBLP_0.2.npz')
+csv2=data['x2']
+csv1=data['x1']
 # Load CSVs (replace with your actual file paths)
-csv2 = pd.read_csv("./Data/Full-dataset/attribute/am-tdattr1.csv", header=None).iloc[:, 1:].to_numpy()
-csv1 = pd.read_csv("./Data/Full-dataset/attribute/am-tdattr2.csv", header=None).iloc[:, 1:].to_numpy()
+#csv2 = pd.read_csv("./Data/Full-dataset/attribute/am-tdattr1.csv", header=None).iloc[:, 1:].to_numpy()
+#csv1 = pd.read_csv("./Data/Full-dataset/attribute/am-tdattr2.csv", header=None).iloc[:, 1:].to_numpy()
 
 def compare_features(name, arr1, arr2):
     print(f"--- Comparing {name} ---")

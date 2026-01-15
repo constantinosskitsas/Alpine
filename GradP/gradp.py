@@ -58,7 +58,7 @@ def parse_args():
 
 
 def gradPMain(Gq, Gt,featGQ,featGT, mu=1, niter=10, weight=1.0,anchors_GQ=None,anchors_G=None):
-    np.random.seed(432)
+    #np.random.seed(432)
     G1=Gt.copy()
     G2=Gq.copy()
     n=G1.number_of_nodes()
@@ -99,7 +99,7 @@ def gradPMain(Gq, Gt,featGQ,featGT, mu=1, niter=10, weight=1.0,anchors_GQ=None,a
     k_hop=3;hid_dim=100;train_ratio=0.1;
     if (anchors_GQ==None):
         train_ratio=0
-    GradAlign1 = GradAlign(G1, G2, attr1, attr2, attr1_aug, attr2_aug,k_hop, hid_dim, alignment_dict, alignment_dict_reversed, \
+    GradAlign1 = GradAlign(G1, G2, attr1, attr2, attr1_aug, attr2_aug,k_hop, hid_dim, alignment_dict, alignment_dict_reversed, 
                                       train_ratio, idx1_dict, idx2_dict,anchors_GQ,anchors_G, alpha = G2.number_of_nodes() / G1.number_of_nodes(), beta = 1)    
     #GradAlign1.run_algorithm()
     seed_list1, seed_list2 = GradAlign1.run_algorithm()

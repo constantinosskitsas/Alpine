@@ -76,11 +76,11 @@ def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
     if (dataset_dir=="douban"):
         x1 = pd.read_csv(f"./Data/Full-dataset/attribute/{dataset_dir}attr1.csv", header=None).iloc[:, 1:].to_numpy()
         x2 = pd.read_csv(f"./Data/Full-dataset/attribute/{dataset_dir}attr2.csv", header=None).iloc[:, 1:].to_numpy()
-    print(f"✅ Loaded dataset from {dataset_dir} (p={p:.1f})")
+    #print(f"✅ Loaded dataset from {dataset_dir} (p={p:.1f})")
     return edge_index1, edge_index2, x1, x2
 
 def compare(nameA, A, nameB, B):
-    print(f"\n===== Comparing {nameA}  vs  {nameB} =====")
+    #print(f"\n===== Comparing {nameA}  vs  {nameB} =====")
 
     # Convert to numpy for comparison
     if isinstance(A, torch.Tensor):
@@ -93,18 +93,18 @@ def compare(nameA, A, nameB, B):
     else:
         B_np = np.array(B)
 
-    print(f"{nameA} dtype:", A_np.dtype)
-    print(f"{nameB} dtype:", B_np.dtype)
+    #print(f"{nameA} dtype:", A_np.dtype)
+    #print(f"{nameB} dtype:", B_np.dtype)
 
-    print(f"{nameA} shape:", A_np.shape)
-    print(f"{nameB} shape:", B_np.shape)
+    #print(f"{nameA} shape:", A_np.shape)
+    #print(f"{nameB} shape:", B_np.shape)
 
     # Check if identical
     same_shape = (A_np.shape == B_np.shape)
     same_values = np.array_equal(A_np, B_np)
 
-    print("Same shape?:", same_shape)
-    print("Same values?:", same_values)
+    #print("Same shape?:", same_shape)
+    #print("Same values?:", same_values)
 
     # If not identical, show difference summary
     if same_shape and not same_values:
@@ -113,10 +113,10 @@ def compare(nameA, A, nameB, B):
 
         # print first few differing entries
         idx = np.argwhere(diff)
-        print("First 10 differences (index, A, B):")
+        #print("First 10 differences (index, A, B):")
         for i in idx[:10]:
             idx_tuple = tuple(i)
-            print(idx_tuple, A_np[idx_tuple], B_np[idx_tuple])
+            #print(idx_tuple, A_np[idx_tuple], B_np[idx_tuple])
 
 
 def NextAlign(dataset,ratio,use_attr,anchor_links):
@@ -149,8 +149,8 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
     G1.add_edges_from(edge_index1)
     G2.add_edges_from(edge_index2)
     n1, n2 = G1.number_of_nodes(), G2.number_of_nodes()
-    print(n1,n2)
-    print(max(anchor_nodes1),max(anchor_nodes2))
+    #print(n1,n2)
+    #print(max(anchor_nodes1),max(anchor_nodes2))
     for edge in G1.edges():
         G1[edge[0]][edge[1]]['weight'] = 1
     for edge in G2.edges():
@@ -181,14 +181,14 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
             position_score2[node] += rwr_score2[node]
     x1 = (position_score1, x1) if use_attr else position_score1
     x2 = (position_score2, x2) if use_attr else position_score2
-    print('Finished initial relative positioning in %.2f seconds' % (time.time() - t0))
+    #print('Finished initial relative positioning in %.2f seconds' % (time.time() - t0))
 
     ################################################################################################
     # merge input networks into a world-view network
     t0 = time.time()
     node_mapping1 = np.arange(G1.number_of_nodes()).astype(np.int64)
     edge_index, edge_types, x, node_mapping2 = merge_graphs(edge_index1, edge_index2, x1, x2, anchor_links)
-    print('Finished merging networks in %.2f seconds' % (time.time() - t0))
+    #print('Finished merging networks in %.2f seconds' % (time.time() - t0))
 
     # input node features: (one-hot encoding, position, optional - node attributes)
     x1 = np.arange(len(x[0]), dtype=np.int64) if use_attr else np.arange(len(x), dtype=np.int64)
@@ -255,7 +255,7 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
             t0 = time.time()
             context_pos1_emb = out_x[node_mapping1[pos_context_nodes1]]
             context_pos2_emb = out_x[node_mapping2[pos_context_nodes2]]
-            print("here")
+            #print("here")
             pn_examples1, _ = negative_sampling_exact(out_x, args.N_negs, anchor_nodes1, node_mapping1,
                                                             'p_n', 'g1')
             pn_examples2, _ = negative_sampling_exact(out_x, args.N_negs, anchor_nodes2, node_mapping2,
@@ -293,9 +293,9 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
             total_loss = args.coeff1 * loss1 + args.coeff2 * loss2
             t_loss += (time.time() - t0)
 
-            print("Epoch:{}, Iteration:{}, Training loss:{}, Loss1:{},"
-                " Loss2:{}".format(epoch + 1, i + 1, round(total_loss.item(), 4), round(loss1.item(), 4),
-                                    round(loss2.item(), 4)))
+            #("Epoch:{}, Iteration:{}, Training loss:{}, Loss1:{},"
+            #    " Loss2:{}".format(epoch + 1, i + 1, round(total_loss.item(), 4), round(loss1.item(), 4),
+            #                        round(loss2.item(), 4)))
 
             # backward pass
             total_loss.backward()
