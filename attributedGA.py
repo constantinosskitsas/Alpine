@@ -149,19 +149,19 @@ def AlpineL(Gq, Gt,f1=None,f2=None, mu=1, niter=10, weight=2):
 iters=1
 tun=[1,6,10,12,14]
 tuns=["Alpine","REGAL","GradP","SlotaA","HTC"]
-tun=[1]
-tuns=["AlpineNF"]
+tun=[14]
+tuns=["HTC"]
 nL=["testing"]
 foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi']
 n_G2 = [1118,5712,9872,1043,1767] #s
 n_G=[3906,6010,9916,1043,1767] #t
 gt_size=[1118,5174,6325,1043,1767]
-foldernames=['douban','allmv_tmdb','acm_dblp','ppi']
-n_G2 = [1118,5712,9872,1767] #s
-n_G=   [3906,6010,9916,1767] #t
-gt_size=[1118,5174,6325,1767]
-attrN=[True,True,True,True]
-
+foldernames=['acm_dblp']
+n_G2 = [9872] #s
+n_G=   [39916] #t
+gt_size=[6325]
+attrN=[True]
+seed=1
 
 for k in range(0,len(foldernames)):
         #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
@@ -295,7 +295,7 @@ for k in range(0,len(foldernames)):
                         ratio=0 
                         data_GT1=None   
                         similarity = HTC_main(foldernames[k], ratio, data_GT1, f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_orca.txt', f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_orca.txt', src_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_laps.pth', trg_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_laps.pth')
-                        if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
+                        if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"or foldernames[k]=="acm_dblp"):
                             similarity=similarity.T
                         print('htc shape: ', similarity.shape)
                         P2, row_ind, col_ind = PermHungarian(similarity)

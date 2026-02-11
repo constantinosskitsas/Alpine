@@ -11,7 +11,7 @@ from JOENA.model import *
 import numpy as np
 import os
 import pandas as pd
-def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
+def load_data_from_txt(dataset_dir, p, use_attr=True,Perm=None):
     """
     Load dataset directly from .txt files (same output as load_data from .npz).
 
@@ -24,14 +24,18 @@ def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
     """
 
     # --- Load edge indices ---
+    dtype=np.float32
     edge_index1 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_t_edge.txt', dtype=np.int64)
     edge_index2 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_s_edge.txt', dtype=np.int64)
-
+    
+    if (dataset_dir=="phone"):
+        edge_index2=Perm[edge_index2]
     # Ensure shape consistency (transpose to match .npz format)
     if edge_index1.ndim == 1:
         edge_index1 = edge_index1[None, :]  # handle 1-line files
     if edge_index2.ndim == 1:
         edge_index2 = edge_index2[None, :]
+    
     edge_index1 = edge_index1# shape (2, num_edges)
     edge_index2 = edge_index2
 
@@ -48,9 +52,10 @@ def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
         data = np.load(f'JOENA/datasets/ACM-DBLP_0.2.npz')
         x1=data['x2']
         x2=data['x1']
+    
     print(f"✅ Loaded dataset from {dataset_dir} (p={p:.1f})")
     return edge_index1, edge_index2, x1, x2
-def JOENA(dataset,ratio,use_attr,anchor_links):
+def JOENA(dataset,ratio,use_attr,anchor_links,Perm):
     args = make_args()
     if os.path.exists(f"JOENA/settings/{dataset}.json"):
         print(f"Loading settings from settings/{dataset}.json")
@@ -63,14 +68,15 @@ def JOENA(dataset,ratio,use_attr,anchor_links):
         print(f"Using default arguments from command line")
     print("Loading data...", end=" ")
     print(use_attr)
-    edge_index1,edge_index2,x1,x2=load_data_from_txt(dataset,ratio,use_attr)
+    edge_index1,edge_index2,x1,x2=load_data_from_txt(dataset,ratio,use_attr,Perm)
     #edge_index1, edge_index2, x1, x2, anchor_links, test_pairs = load_data(f"JOENA/datasets/Douban",ratio,
     #                                                                      use_attr, dtype=np.float64)
 
     #edge_index1 = list(map(tuple, edge_index1.T))
     #edge_index2 = list(map(tuple, edge_index2.T))
     anchor1, anchor2 = anchor_links[:, 0], anchor_links[:, 1]
-
+    #if (dataset=="phone"):
+    #    anchor1=Perm[anchor_links[:, 0]]
     G1, G2 = build_nx_graph(edge_index1, anchor1, x1), build_nx_graph(edge_index2, anchor2, x2)
     rwr1, rwr2 = get_rwr_matrix(G1, G2, anchor_links, dataset, ratio, dtype=np.float64)
     if x1 is None:

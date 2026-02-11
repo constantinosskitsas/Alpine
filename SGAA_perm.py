@@ -30,13 +30,6 @@ def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('----> Accuracy:', accuracy)
     print('----> Time:', time_diff)
     print()     
-def load_permutation(run_index, folder="Data/data/phone"):
-    """
-    Loads a single permutation by index.
-    """
-    filename = os.path.join(folder, f"P_run{run_index}.txt")
-    P = np.loadtxt(filename, dtype=int)
-    return P
 def PermHungarian(M):
 
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
@@ -137,8 +130,6 @@ def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
     avg_degree1 = degrees1.mean()
     if (min(avg_degree,avg_degree1)<3):
         dd=2
-    if (max(avg_degree,avg_degree1)>15):
-        reg=10
     A0 = np.mean(np.abs(feat))
     for outer in range(10):
         for it in range(1, 11):
@@ -147,8 +138,8 @@ def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
             gamma_a = gamma * S0 / (A0 + 1e-4)
             deriv = deriv + gamma_a * (feat)
             #print(np.max(gamma_a*feat))
-            #deriv=deriv/10
-            q=ot.sinkhorn(ones_augm_, ones_, deriv, reg, numItermax = 1000, stopThr = 1e-6)
+            #deriv=deriv/5
+            q=ot.sinkhorn(ones_augm_, ones_, deriv, 1.0, numItermax = 1000, stopThr = 1e-6)
             
             alpha = 2 / float(2 + it)
             Pi[:m, :n] = Pi[:m, :n] + alpha * (q[:m, :n] - Pi[:m, :n])
@@ -191,7 +182,7 @@ def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10
         F2 = feature_extraction(Gt)
     D = eucledian_dist(F1,F2,n)
     D = torch.tensor(D, dtype = torch.float64)
-    
+    #mu=4
     P, forbnorm,row_ind,col_ind = Alpine_pp_new_supervised(A[:n1,:n1], B,feat,mu*D,gtGq,gtGt, niter,A)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
     list_of_nodes = []
@@ -510,7 +501,13 @@ def two_hop_similarity_matrix_Simple(A, B, gtA, gtB):
     C = A2 @ M @ B2.T  # shape (nA, nB)
     C = torch.log1p(C)
     return C
+def generate_graphs(A, n):
+    P = np.random.permutation(n)
 
+    # Permute rows and columns
+    A_perm = A[P][:, P]
+
+    return A_perm, P
 iters=5
 tun=[1,10,11,12]
 tuns=["Alpine","Regal","GradP","JOENA","SlotAlign","NextAlign","Parrot"]
@@ -530,10 +527,10 @@ n_G2 = [1118,5712,9872,1043,1767,2708,1000] #s
 n_G=   [3906,6010,9916,1043,1767,2708,1003] #t
 gt_size=[1118,5174,6325,1043,1767,2708,1000]
 attrN=[True,True,True,False,True,True,False,False]
-foldernames=['foursquare']
-n_G2 = [5120] #s
-n_G=   [5313] #t
-gt_size=[1609]
+foldernames=['phone']
+n_G2 = [1000] #s
+n_G=   [1003] #t
+gt_size=[1000]
 attrN=[False]
 
 #foldernames=['acm_dblp']
@@ -544,7 +541,7 @@ attrN=[False]
 
 
 
-ratio=0.05
+ratio=0.2
 
 #douban
 #foldernames=['ppi']
@@ -552,9 +549,8 @@ ratio=0.05
 #n_G=[1767] #t
 #gt_size=[1767]
 tun=[1]
-tuns=["Alpine"]
+tuns=["GraD"]
 #attrN=[True]
-Perm=None
 for k in range(0,len(foldernames)):
         #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         G = read_real_graph(n = n_G[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_edge.txt')
@@ -595,6 +591,9 @@ for k in range(0,len(foldernames)):
                     csv2=data['x2']
                     csv1=data['x1']
                 for iter in range(iters):
+                    #if( iter!=2):
+                    #    continue
+                    print("iter",iter)
                     if (foldernames[k]=="douban" or foldernames[k]=="acm_dblp"):
                         F2=csv2
                         F1=csv1
@@ -615,26 +614,19 @@ for k in range(0,len(foldernames)):
                     #Q_real = read_list(file_nodes)
                     #G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
                     G_Q = read_real_graph(n = n_G2[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_edge.txt')
-                    if (foldernames[k]=="phone"):
-                      
-                        Perm=  load_permutation(iter)
-                        A1_perm=nx.to_numpy_array(G_Q, dtype=int)
-                        A_perm = A1_perm[Perm][:, Perm]
-                        G_Q = nx.from_numpy_array(A_perm)
+                    G_Q1,P=generate_graphs(nx.to_numpy_array(G_Q, dtype=int),n_G2[k])
+                    G_Q = nx.from_numpy_array(G_Q1)
                     pairs = []
-                    if (foldernames[k]=="phone"):
-                        with open(f'./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True.txt', "r") as f:
-                            for line in f:
-                                a, b = line.strip().split()
-                                a = int(a)       # source node
-                                b = int(b)       # target node (original)
-                                a_perm = Perm[a]
-                                pairs.append((a_perm, b))
-                    else:
-                        with open(f'./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True.txt', "r") as f:
-                            for line in f:
-                                a, b = line.strip().split()
-                                pairs.append((int(a), int(b)))
+                    counter=0
+                    with open(f'./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True.txt', "r") as f:
+                        for line in f:
+                            a, b = line.strip().split()
+                            a = int(a)       # source node
+                            b = int(b)       # target node (original)
+        # Apply permutation P to the target node
+                            a_perm = P[a]
+                            pairs.append((a_perm, b))
+                            #pairs.append((a, b))
 # ✅ Find the max node ID in each graph
                     max_A = n_G2[k]#max(a for a, b in pairs)
                     max_B = n_G2[k]#max(b for a, b in pairs)
@@ -664,22 +656,24 @@ for k in range(0,len(foldernames)):
                     #A = nx.adjacency_matrix(G_Q).todense()
                     QGS=G_Q.number_of_nodes()
                     QGES = G_Q.number_of_edges()
-                    anchors_G = data_GT[:, 1].tolist()
-                    anchors_GQ = data_GT[:, 0].tolist()
+                    #anchors_G = data_GT[:, 1].tolist()
+                    #anchors_GQ = data_GT[:, 0].tolist()
+                    
+                    #anchors_GQ = P[data_GT[:, 0]].tolist()
                     #G1,G1_Q=synchronize_graphs(G,G_Q,anchors_G,anchors_GQ)
                     print(np.shape(F2))
                     print("G_Q",G_Q.number_of_edges())
                     print("G",G.number_of_edges())
-                    if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb" or foldernames[k]=="foursquare"  ):
-                        anchors_G = data_GT[:, 0].tolist()
+                    if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
+                        anchors_G = [P[i] for i in data_GT[:, 0]]
+                        #anchors_G = data_GT[:, 0].tolist()
+                        #anchors_GQ = P[data_GT[:, 1]].tolist()
+                        #anchors_GQ = [P[i] for i in data_GT[:, 1]]
                         anchors_GQ = data_GT[:, 1].tolist()
-                    if(foldernames[k]=="phone"):
-                        anchors_G = [Perm[i] for i in data_GT[:, 0]]
-                        anchors_GQ = data_GT[:, 1].tolist()
+
+                        #anchors_GQ=P
                     G1=G
                     G1_Q=G_Q
-                    print("Size of anchors_G:", len(anchors_G))
-                    print("Size of anchors_GQ:", len(anchors_GQ))
                     if (foldernames[k]!="foursquare" and foldernames[k]!="phone"and foldernames[k]!="fb_tw"):
                         
                         F2_n,F1_n=synchronize_features(F2,F1,anchors_G,anchors_GQ)
@@ -689,19 +683,22 @@ for k in range(0,len(foldernames)):
                         #F2_n*=0
                     #F1_n*=0
                     start = time.time()
-                    #compare_features(F1,F2,A_to_B)
+                    #compare_features(F1,F2,A_to_B) s
                     #compare_features(F1,F2,B_to_A)
                     if(tun[ptun]==1):
                         print("Alpine")
                         mun=0.1
                         #mun=0
                         #if(foldernames[k]=="fb_tw" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
-                        if(attrN[k]==False and foldernames[k]!="foursquare"):
+                        if(attrN[k]==False):
                             mun=1
-                            #if (foldernames[k]=="phone"):
-                            #    mun=8
+                            if (foldernames[k]=="phone"):
+                                mun=1
                         G1,G1_Q=seed_link(anchors_G,anchors_GQ,G,G_Q)
+                        print("AlpineIN")
                         _, list_of_nodes, forb_norm = Alpine_supervised(G1_Q.copy(), G1.copy(),F1_n,F2_n,anchors_GQ,anchors_G,mun,weight=2)                    
+                        print("AlpineOUT")
+
                     elif(tun[ptun]==6):
                             print("Regal")
                             _, list_of_nodes, forb_norm = RegalATT(G_Q.copy(), G.copy(),F1_n,F2_n)      
@@ -711,17 +708,15 @@ for k in range(0,len(foldernames)):
                     elif(tun[ptun]==11):
                         forb_norm=1
                         print("JOENA")
-
-                        if foldernames[k] in ["acm_dblp","ppi","cora","phone"]:
+                        if foldernames[k] in ["acm_dblp","ppi","cora"]:
                             print("in")
                             data_GT1 = data_GT[:, [1, 0]]  # swap columns
                             #data_GT1=data_GT
                             
                         else:
                             data_GT1=data_GT
-                        if foldernames[k] in ["phone"]:
-                            data_GT1[:, 1] = Perm[data_GT1[:, 1]]     
-                        similarity = JOENA(foldernames[k],ratio,attrN[k],data_GT1,Perm)
+                            
+                        similarity = JOENA(foldernames[k],ratio,attrN[k],data_GT1)
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
                             similarity=similarity.T
                         
@@ -751,9 +746,8 @@ for k in range(0,len(foldernames)):
                             
                         else:
                             data_GT1=data_GT
-                        if foldernames[k] in ["phone"]:
-                            data_GT1[:, 0] = Perm[data_GT1[:, 0]]         
-                        similarity = NextAlign(foldernames[k],attrN[k],data_GT1,Perm)
+                            
+                        similarity = NextAlign(foldernames[k],attrN[k],data_GT1)
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
                             similarity=similarity
                         
@@ -769,10 +763,10 @@ for k in range(0,len(foldernames)):
                         if foldernames[k] in ["acm_dblp","ppi","cora"]:
                             print("in")
                             data_GT1 = data_GT[:, [1, 0]]  # swap columns
+                            #data_GT1=data_GT
+                            
                         else:
                             data_GT1=data_GT
-                            if foldernames[k] in ["phone"]:
-                                data_GT1[:, 0] = Perm[data_GT1[:, 0]] 
                         similarity = Parrot(foldernames[k],G1_Q.copy(),G1.copy(),F1_n.copy(),F2_n.copy() ,data_GT1)
                         #similarity = Parrot(foldernames[k],G1.copy(),G1_Q.copy(),F2_n,F1_n,data_GT1)
 
@@ -797,6 +791,7 @@ for k in range(0,len(foldernames)):
                     file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
                     spec_norm=0
+                    #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     accuracy1 = np.sum(np.array(A_to_B)==np.array(list_of_nodes))/gt_size[k]
                     accuracy2 = np.sum(np.array(B_to_A)==np.array(list_of_nodes))/gt_size[k]
                     accuracy=0

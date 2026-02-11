@@ -84,29 +84,53 @@ def gradPMain(Gq, Gt,featGQ,featGT, mu=1, niter=10, weight=1.0,anchors_GQ=None,a
     #    = na_dataloader(args)
     centrality='katz'
     #centrality='khop'
+    normalize=True
+    khop=1
+    num_attr=15
+    penalty=0.1
     attr1_aug, attr2_aug = augment_attributes(G1, G2,
                                               attr1, attr2,
-                                              num_attr = 15,
-                                              version = centrality,     
-                                              khop = 1,
-                                              normalize = False) 
+                                              num_attr,
+                                               centrality,     
+                                              khop,penalty,
+                                              normalize) 
     attr1_aug, attr2_aug = aug_trimming(attr1_aug, attr2_aug)
 
     #Checking statistics
 #    str_con_portion = struct_consist_checker(G1, G2, alignment_dict)
 #    att_con_portion = att_consist_checker(G1, G2, attr1, attr2, idx1_dict, idx2_dict, alignment_dict)
 #    feat_avg_diff = feat_diff_checker(attr1_aug, attr2_aug)
-    k_hop=3;hid_dim=100;train_ratio=0.1;
+    k_hop=3;hid_dim=100;train_ratio=0.15;
     if (anchors_GQ==None):
         train_ratio=0
     GradAlign1 = GradAlign(G1, G2, attr1, attr2, attr1_aug, attr2_aug,k_hop, hid_dim, alignment_dict, alignment_dict_reversed, 
                                       train_ratio, idx1_dict, idx2_dict,anchors_GQ,anchors_G, alpha = G2.number_of_nodes() / G1.number_of_nodes(), beta = 1)    
     #GradAlign1.run_algorithm()
     seed_list1, seed_list2 = GradAlign1.run_algorithm()
-    seed_list2=np.array(seed_list2)
-    seed_list1=np.array(seed_list1)
+    print(len(set(seed_list1)))
+    print(len(set(seed_list2)))
+    seed_list1 = np.array(seed_list1)
+    seed_list2 = np.array(seed_list2)
+    seen = set()
+    mask = []
+    # remove duplicates based on seed_list2
+    for x in seed_list2:
+        if x in seen:
+            mask.append(False)
+        else:
+            seen.add(x)
+            mask.append(True)
+
+    mask = np.array(mask)
+
+    seed_list1 = seed_list1[mask]
+    seed_list2 = seed_list2[mask]
     sorted_indices = np.argsort(seed_list2)
 
+    list_of_nodes2_sorted = seed_list2[sorted_indices]
+    list_of_nodes1_sorted = seed_list1[sorted_indices]
+
+    print(len(seed_list1), len(seed_list2))
 # Reorder list_of_nodes2 using the sorted indices
     list_of_nodes2_sorted = seed_list2[sorted_indices]
     list_of_nodes2_sorted=[]

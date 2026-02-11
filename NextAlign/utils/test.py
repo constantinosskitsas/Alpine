@@ -41,7 +41,7 @@ def compute_full_similarity(model, g, x, edge_types,
                + weights[2] * manhattan_distances(x1_2, x2_1)
                + weights[3] * manhattan_distances(x1_2, x2_2))
             S = -S   # convert mass distances to similarity
-
+        S = expit(S)
         return S   # (#G1 × #G2)
 
 def test(model, topk, g, x, edge_types, node_mapping1, node_mapping2, test_set, anchor_links2, dist, mode='training'):

@@ -97,7 +97,7 @@ class GradAlign:
 
         model = model.to(self.device)
         model_aug = model_aug.to(self.device)
-
+        #self.train_ratio=0
         if self.train_ratio == 0:
             seed_list1 = []
             seed_list2 = []
@@ -112,9 +112,9 @@ class GradAlign:
             #seed_list1 = list(self.anchors_G)
             seed_list2 = list(self.anchors_GQ) if self.anchors_GQ is not None else []
             seed_list1 = list(self.anchors_G) if self.anchors_G is not None else []
-            self.G1, self.G2 = seed_link(
-                seed_list1, seed_list2, self.G1, self.G2)
-
+            self.pre_seed_list1 = seed_list1
+            self.pre_seed_list2 = seed_list2
+            self.G1, self.G2 = seed_link(seed_list1, seed_list2, self.G1, self.G2)
             self.H = self.calculateH(self.gamma)
         nx.set_edge_attributes(
             self.G1, values=self.default_weight, name='weight')

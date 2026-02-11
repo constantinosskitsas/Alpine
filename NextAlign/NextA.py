@@ -16,7 +16,7 @@ def make_args():
     
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--seed', type=int, default=123, help='seed')
+    #parser.add_argument('--seed', type=int, default=123, help='seed')
     parser.add_argument('--dim', type=int, default=128, help='dimension of output embeddings.')
     parser.add_argument('--num_layer', type=int, default=1, help='number of layers.')
     parser.add_argument('--ratio', type=float, default=0.2, help='training ratio.')
@@ -43,7 +43,7 @@ def make_args():
     parser.add_argument('--gpu', type=int, default=0, help='cuda number.')
     parser.add_argument('--dist', type=str, default='L1', help='distance for scoring.')
     return parser.parse_args()
-def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
+def load_data_from_txt(dataset_dir, use_attr=True,Perm=None):
     """
     Load dataset directly from .txt files (same output as load_data from .npz).
 
@@ -54,11 +54,12 @@ def load_data_from_txt(dataset_dir, p, use_attr=True, dtype=np.float32):
     :return:
         edge_index1, edge_index2, x1, x2, anchor_links, test_pairs
     """
-
+    dtype=np.float32
     # --- Load edge indices ---
     edge_index1 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_t_edge.txt', dtype=np.int64)
     edge_index2 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_s_edge.txt', dtype=np.int64)
-
+    if (dataset_dir=="phone"):
+        edge_index2=Perm[edge_index2]
     # Ensure shape consistency (transpose to match .npz format)
     if edge_index1.ndim == 1:
         edge_index1 = edge_index1[None, :]  # handle 1-line files
@@ -119,11 +120,12 @@ def compare(nameA, A, nameB, B):
             #print(idx_tuple, A_np[idx_tuple], B_np[idx_tuple])
 
 
-def NextAlign(dataset,ratio,use_attr,anchor_links):
+def NextAlign(dataset,use_attr,anchor_links,Perm=None):
     args = make_args()
-    edge_index2,edge_index1,x2,x1=load_data_from_txt(dataset,ratio,use_attr)
+    edge_index2,edge_index1,x2,x1=load_data_from_txt(dataset,use_attr,Perm)
     anchor_nodes1, anchor_nodes2 = anchor_links[:, 0], anchor_links[:, 1]
     anchor_links2= anchor_nodes2
+
     G1, G2 = nx.Graph(), nx.Graph()
     if (use_attr):
         x1 = x1.astype(np.float32)
@@ -169,7 +171,9 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
     # run random walk with restart or load from existing file for pre-positioning
     t0 = time.time()
     rwr_score1, rwr_score2 = rwr_scores(G1, G2, anchor_links)
-
+    print("Anchor nodes:", len(anchor_nodes1))
+    print("Context pairs G1:", len(context_pairs1))
+    print("Context pairs G2:", len(context_pairs2))
     ################################################################################################
     # Set initial relative positions
     position_score1, position_score2 = anchor_emb(G1, G2, anchor_links)
@@ -196,10 +200,10 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
     x = (x1, x2, x[1]) if use_attr else (x1, x2)
 
     args.device = 'cpu'
-    torch.manual_seed(args.seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(args.seed)
-        args.device = 'cuda:%d' % args.gpu
+    #torch.manual_seed(args.seed)
+    #if torch.cuda.is_available():
+    #    torch.cuda.manual_seed(args.seed)
+    #    args.device = 'cuda:%d' % args.gpu
 
     landmark = torch.from_numpy(anchor_nodes1).to(args.device)
     num_nodes = x[0].shape[0]
@@ -235,7 +239,6 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
     topk = [1, 10, 30, 50, 100]
     max_hits = np.zeros(len(topk), dtype=np.float32)
     max_hit_10, max_hit_30, max_epoch = 0, 0, 0
-
 
     for epoch in range(args.epochs):
         model.train()
@@ -307,10 +310,10 @@ def NextAlign(dataset,ratio,use_attr,anchor_links):
         avg_t_get_emb = round(t_get_emb / ((epoch+1) * data_loader_size), 2)
         avg_t_loss = round(t_loss / ((epoch+1) * data_loader_size), 2)
         time_cost = [avg_t_model, avg_t_neg_sampling, avg_t_get_emb, avg_t_loss]
-        similarity= compute_full_similarity(model, g, x, edge_types,
+    similarity= compute_full_similarity(model, g, x, edge_types,
                             node_mapping1, node_mapping2,
                             args.dist)
-        return similarity
+    return similarity
         #train_hits = test(model, topk, g, x, edge_types, node_mapping1, node_mapping2, anchor_links, anchor_links2, args.dist)
         #hits = test(model, topk, g, x, edge_types, node_mapping1, node_mapping2, test_pairs, anchor_links2, args.dist, 'testing')
         #print("Epoch:{}, Training loss:{}, Train_Hits:{},  Test_Hits:{}, Time:{}".format(

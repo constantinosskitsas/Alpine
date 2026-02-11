@@ -123,9 +123,33 @@ def extract_pairs(walks, center_nodes, window_size=2):
 
     context_pairs = np.array(list(set(context_pairs)))
     np.random.shuffle(context_pairs)
-
     return context_pairs
 
+def balance_inputs1(context_pairs1, context_pairs2):
+    # Build dict: anchor -> list of contexts
+    from collections import defaultdict
+    d1, d2 = defaultdict(list), defaultdict(list)
+
+    for a, c in context_pairs1:
+        d1[a].append(c)
+    for a, c in context_pairs2:
+        d2[a].append(c)
+
+    balanced1, balanced2 = [], []
+
+    common_anchors = set(d1.keys()) & set(d2.keys())
+
+    for a in common_anchors:
+        c1, c2 = d1[a], d2[a]
+        m = max(len(c1), len(c2))
+
+        c1 = np.random.choice(c1, m, replace=True)
+        c2 = np.random.choice(c2, m, replace=True)
+
+        balanced1.extend([[a, x] for x in c1])
+        balanced2.extend([[a, x] for x in c2])
+
+    return np.array(balanced1), np.array(balanced2)
 def balance_inputs(context_pairs1, context_pairs2):
     if len(context_pairs1) < len(context_pairs2):
         len_diff = len(context_pairs2) - len(context_pairs1)

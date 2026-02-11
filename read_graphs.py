@@ -5,7 +5,7 @@ import random
 from help_functions import read_real_graph
 import sys
 import os
-random.seed(10)
+#random.seed(10)
 
 folderall = 'data3_'
 #the code will not work for disconected graphs
