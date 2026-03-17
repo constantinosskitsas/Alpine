@@ -38,43 +38,7 @@ def pad_numpy_rows(arr, target_rows):
         padding = np.zeros((target_rows - current_rows, arr.shape[1]))
         arr = np.vstack((arr, padding))
     return arr
-def compare_features(F1, F2, A_to_B):
-    l2_diffs = []
-    cos_sims = []
 
-    for a, b in enumerate(A_to_B):   # <-- works if A_to_B is a list or 1D numpy array
-        f1 = F1[a]
-        f2 = F2[b]
-
-        # L2 distance
-        l2 = np.linalg.norm(f1 - f2)
-        l2_diffs.append(l2)
-
-        # Cosine similarity
-        denom = (np.linalg.norm(f1) * np.linalg.norm(f2) + 1e-9)
-        cos = np.dot(f1, f2) / denom
-        cos_sims.append(cos)
-
-    print("=== Ground Truth Feature Comparison ===")
-    print(f"Average L2 distance: {np.mean(l2_diffs):.6f}")
-    print(f"Median L2 distance: {np.median(l2_diffs):.6f}")
-    print(f"Average cosine similarity: {np.mean(cos_sims):.6f}")
-    print(f"Median cosine similarity: {np.median(cos_sims):.6f}")
-    print(f"Min/Max cosine similarity: {np.min(cos_sims):.6f} / {np.max(cos_sims):.4f}")
-    print(f"distance{np.sum(l2_diffs):.6f}")
-    return l2_diffs, cos_sims 
-
-def add_noise_per_row(features, noise_fraction=0.1):
-    noisy_features = features.copy()
-    n_rows, n_cols = noisy_features.shape
-    num_noisy_per_row = int(n_cols * noise_fraction)
-
-    for i in range(n_rows):
-        zero_indices = np.random.choice(n_cols, num_noisy_per_row, replace=False)
-        noisy_features[i, zero_indices] = 0
-
-    return noisy_features
- 
 iters=5
 tun=[1,6,10,12,14]
 tuns=["Alpine","REGAL","GradP","SlotaA","HTC"]
@@ -191,7 +155,6 @@ for k in range(0,len(foldernames)):
                         similarity = HTC_main(foldernames[k], ratio, data_GT1, f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_orca.txt', f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_orca.txt', src_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_laps.pth', trg_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_laps.pth')
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"or foldernames[k]=="acm_dblp"):
                             similarity=similarity.T
-                        print('htc shape: ', similarity.shape)
                         P2, row_ind, col_ind = PermHungarian(similarity)
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
@@ -204,30 +167,23 @@ for k in range(0,len(foldernames)):
                     subgraph = G.subgraph(list_of_nodes)
                     PGS=subgraph.number_of_nodes()
                     PGES = subgraph.number_of_edges()
-                    isomorphic=False
-                    if(forb_norm==0):
-                        isomorphic=True
+
                     time_diff = end - start
                     file_nodes_pred = open(f'{folder1_}/{tuns[ptun]}.txt','w')
                     for node in list_of_nodes: file_nodes_pred.write(f'{node}\n')
                     spec_norm=0
-                    #accuracy = np.sum(np.array(Q_real)==np.array(list_of_nodes))/len(Q_real)
                     accuracy1 = np.sum(np.array(A_to_B)==np.array(list_of_nodes))/gt_size[k]
                     accuracy2 = np.sum(np.array(B_to_A)==np.array(list_of_nodes))/gt_size[k]
-                    print("ACC 1 or 2?",accuracy1,accuracy2)
-                    print(np.sum(np.array(A_to_B)==np.array(list_of_nodes)))
-                    accuracy=0
-                    if ({foldernames[k]}=="douban" or{foldernames[k]}=="allmv_tmdb" ):
-                        accuracy=accuracy2
-                    else:
-                        accuracy=accuracy1
+                    #print("ACC 1 or 2?",accuracy1,accuracy2)
+                    accuracy=max(accuracy1,accuracy2)
+                    
                     with open("differences.txt", "w") as f:
                         f.write("Differences A_to_B:\n")
                         f.write("\n\nDifferences B_to_A:\n")
                         f.write("\n\nAccuracy A_to_B: {:.4f}\n".format(accuracy1))
                         f.write("Accuracy B_to_A: {:.4f}\n".format(accuracy2))
                     file_A_results.write(f'{DGS} {DGES} {QGS} {QGES} {PGS} {PGES} {forb_norm} {accuracy1} {accuracy2} {time_diff} {isomorphic}\n')
-                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,isomorphic)          
+                    printR(tuns[ptun],forb_norm,accuracy,spec_norm,time_diff,False)          
             print('\n')
         print('\n\n')
 
