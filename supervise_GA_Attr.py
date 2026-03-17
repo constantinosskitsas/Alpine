@@ -1,7 +1,7 @@
 import networkx as nx
 import torch
 import numpy as np
-from pred import eucledian_dist,feature_extraction1,feature_extraction,convertToPermHungarian
+from pred import convertToPermHungarian,Alpine_supervised
 from pred import convertToPermHungarian2new
 import ot
 import scipy
@@ -77,126 +77,7 @@ def synchronize_features(F1, F2, anchors_G, anchors_G_Q, direction="F1_to_F2"):
         raise ValueError("direction must be 'F1_to_F2' or 'F2_to_F1'")
     
     return F1_new, F2_new
-def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
-    """
-    A: adjacency of graph A (m x m)
-    B: adjacency of graph B (n x n)
-    feat: feature/attribute contribution matrix (m x n)
-    K: structural/regularization matrix (m+1 x n)
-    gtA, gtB: ground truth anchor lists (matching nodes)
-    """
-    m = len(A)
-    n = len(B)
-    gtA = np.array(gtA, dtype=int)
-    gtB = np.array(gtB, dtype=int)
-    # Initialize I_p and Pi
-    I_p = torch.zeros((m, m + 1), dtype=torch.float64)
-    for i in range(m):
-        I_p[i, i] = 1
-    #SimOH=one_hop_similarity_matrix_simple(A,B,gtA,gtB)
-    #SimOH1=one_hop_similarity(A,B,gtA,gtB)
-    #Sim2H=two_hop_similarity_matrix_Simple(A,B,gtA,gtB)
-    #cost1H=1-SimOH
-    #cost2H=1-Sim2H
-    #costGT=cost1H#+cost2H
-    #costGT=costGT*5
-    #SimC=SimOH#+Sim2H
-    #removed cost
-    #costGT=one_hop_cost_neighbors(A,B,gtA,gtB)
-    #costGT=costGT+two_hop_cost_neighbors(A,B,gtA,gtB)
-    #dummy_row = torch.zeros((1, costGT.shape[1]), dtype=costGT.dtype, device=costGT.device)
-    #costGT = torch.cat([costGT, dummy_row], dim=0)
-    #dummy_row = torch.zeros((1, SimC.shape[1]), dtype=SimC.dtype, device=SimC.device)
-    #SimC = torch.cat([SimC, dummy_row], dim=0)
-    print("Here")
-    #if torch.any(diff > 0.001):
-    #    print("Matrices differ")
-    Pi = torch.ones((m + 1, n), dtype=torch.float64)
-    Pi[:-1, :] *= 1 / n
-    Pi[-1, :] *= (n - m) / n
-    Pi[-1, :] = 0   
-
-    # --- FORCE GROUND TRUTH in Pi at initialization ---
-    for i, j in zip(gtA, gtB):
-        Pi[i, :] = 0
-        Pi[:, j] = 0
-        Pi[i,j]=1
-        K[i,j]=0
-        #costGT[i,j]=0
-    reg = 1.0
-    mat_ones = torch.ones((m + 1, n), dtype=torch.float64)
-    ones_ = torch.ones(n, dtype=torch.float64)
-    ones_augm_ = torch.ones(m + 1, dtype=torch.float64)
-    ones_augm_[-1] = n - m
-    gamma = 1
-    dd=1
-    degrees = A.sum(dim=1)
-# Average degree = mean of all degrees
-    avg_degree = degrees.mean()
-    degrees1=B.sum(dim=1)
-    avg_degree1 = degrees1.mean()
-    if (min(avg_degree,avg_degree1)<3):
-        dd=2
-    if (max(avg_degree,avg_degree1)>15):
-        reg=10
-    A0 = np.mean(np.abs(feat))
-    for outer in range(10):
-        for it in range(1, 11):
-            deriv= (-4*I_p.T @ (A - I_p @ Pi @ B @ Pi.T @ I_p.T) @ I_p @ Pi @ B)*dd + outer * (mat_ones - 2 * Pi) + K#-SimC*5#+costGT
-            S0 = deriv.abs().mean().item()  # magnitude of structural gradient
-            gamma_a = gamma * S0 / (A0 + 1e-4)
-            deriv = deriv + gamma_a * (feat)
-            #print(np.max(gamma_a*feat))
-            #deriv=deriv/10
-            q=ot.sinkhorn(ones_augm_, ones_, deriv, reg, numItermax = 1000, stopThr = 1e-6)
-            
-            alpha = 2 / float(2 + it)
-            Pi[:m, :n] = Pi[:m, :n] + alpha * (q[:m, :n] - Pi[:m, :n])
-            # --- FORCE GROUND TRUTH AFTER EACH INNER ITERATION ---
-            for i_gt, j_gt in zip(gtA, gtB):
-                if(Pi[i_gt, j_gt] == 1):
-                    continue
-                Pi[i_gt, :] = 0
-                Pi[:, j_gt] = 0
-                Pi[i_gt, j_gt] = 1
-
-    Pi = Pi[:-1]
-
-    P2, row_ind, col_ind = convertToPermHungarian(Pi, n, m)
-    forbnorm = LA.norm(A - I_p[:, :m].T @ P2 @ B @ P2.T @ I_p[:, :m], 'fro') ** 2
-
-    return Pi, forbnorm, row_ind, col_ind
-def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10, weight=2):
-    n1 = Gq.number_of_nodes()
-    n2 = Gt.number_of_nodes()
-    n = max(n1, n2)
-    for node in nx.isolates(Gq):
-        Gq.add_edge(node, node)
-    for node in nx.isolates(Gt):
-        Gt.add_edge(node, node)
-        
-    Gq.add_node(n1)
-    Gq.add_edge(n1,n1)
-    A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
-    B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = eucledian_dist(f1,f2,n)
-    zeros_row = np.zeros((1, feat.shape[1]))
-    feat=np.vstack([feat, zeros_row])
-        
-    if (weight==2):
-        F1 = feature_extraction1(Gq)
-        F2 = feature_extraction1(Gt) 
-    else:
-        F1 = feature_extraction(Gq)
-        F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
-    D = torch.tensor(D, dtype = torch.float64)
-    
-    P, forbnorm,row_ind,col_ind = Alpine_pp_new_supervised(A[:n1,:n1], B,feat,mu*D,gtGq,gtGt, niter,A)
-    _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
-    list_of_nodes = []
-    for el in ans: list_of_nodes.append(el[1])
-    return ans, list_of_nodes, forbnorm    
+  
 def seed_link(seed_list1, seed_list2, G1, G2):
     k = 0
     for i in range(len(seed_list1) - 1):
@@ -209,152 +90,7 @@ def seed_link(seed_list1, seed_list2, G1, G2):
                 k += 1
     print('Add seed links : {}'.format(k), end='\t')
     return G1, G2
-def one_hop_similarity(A, B, gtA, gtB):
-    """
-    Loop-based 1-hop similarity using ground-truth anchor mapping.
 
-    Args:
-        A, B: adjacency matrices (torch.Tensor)
-        gtA, gtB: lists of ground-truth anchor indices
-
-    Returns:
-        sim: similarity matrix (nA x nB)
-    """
-    nA, nB = A.shape[0], B.shape[0]
-
-    # Convert to Python ints for safe dict operations
-    gtA = [int(x) for x in gtA]
-    gtB = [int(x) for x in gtB]
-
-    # Ground-truth anchor mapping
-    anchor_map = {a: b for a, b in zip(gtA, gtB)}
-    anchor_values = set(anchor_map.values())
-
-    # Precompute neighbors as Python ints
-    neighA = [list(map(int, torch.nonzero(A[i]).view(-1).tolist())) for i in range(nA)]
-    neighB = [set(map(int, torch.nonzero(B[j]).view(-1).tolist())) for j in range(nB)]
-
-    # Precompute degrees of mappable neighbors
-    degA_gt = [sum(1 for u in neighA[i] if u in anchor_map) for i in range(nA)]
-    degB_gt = [sum(1 for v in neighB[j] if v in anchor_values) for j in range(nB)]
-
-    # Initialize similarity matrix
-    sim = torch.zeros((nA, nB), dtype=torch.float64)
-
-    # Compute similarity
-    for i in range(nA):
-        for j in range(nB):
-            count = 0
-            for u in neighA[i]:
-                if u in anchor_map:
-                    v = anchor_map[u]
-                    if v in neighB[j]:
-                        count += 1
-
-            denom = degA_gt[i] + degB_gt[j]
-            sim[i, j] = 1.0 if denom == 0 else 2 * count / denom
-
-    return sim
-def two_hop_cost_neighbors(A, B, gtA, gtB):
-    """
-    Compute 2-hop cost based on ground-truth anchored neighbors.
-
-    A, B : adjacency matrices (torch.Tensor)
-    gtA, gtB : lists/arrays of ground-truth anchors
-    Returns
-    -------
-    cost2H : (nA x nB) tensor of 2-hop costs
-    """
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
-
-    # Compute 2-hop adjacency (binary)
-    A2 = ((A + A @ A) > 0).double()  # include 1-hop edges as well
-    B2 = ((B + B @ B) > 0).double()
-
-    # Anchor mapping matrix
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=device)
-    M[gtA, gtB] = 1.0
-
-    # Count matched anchored neighbors (numerator)
-    C2 = torch.mm(A2, torch.mm(M, B2.T))
-
-    # Degrees: total number of anchored neighbors (denominator)
-    maskA = torch.zeros(nA, dtype=torch.float64, device=device)
-    maskA[gtA] = 1.0
-    degA2_gt = A2 @ maskA.unsqueeze(1)
-
-    maskB = torch.zeros(nB, dtype=torch.float64, device=device)
-    maskB[gtB] = 1.0
-    degB2_gt = B2 @ maskB.unsqueeze(1)
-
-    denom2 = degA2_gt + degB2_gt.T
-
-    # Compute cost: fraction of mismatched anchored neighbors
-    cost2 = torch.zeros_like(C2)
-    nonzero = denom2 != 0
-    cost2[nonzero] = (degA2_gt + degB2_gt.T - 2*C2)[nonzero] / denom2[nonzero]
-    w = torch.log1p(denom2) / torch.log1p(denom2.max())
-    
-    cost2[nonzero] = w[nonzero] * (degA2_gt + degB2_gt.T - 2*C2)[nonzero] / denom2[nonzero]
-    
-    # If both nodes have no anchored neighbors, cost = 0
-    cost2[denom2 == 0] = 0.0
-
-    return cost2
-def one_hop_similarity_matrix_simple(A, B, gtA, gtB):
-    """
-    Vectorized 1-hop similarity based on anchor matches.
-    A, B: adjacency matrices (torch.Tensor)
-    gtA, gtB: anchor index lists
-    """
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
-
-    # Anchor matrix M
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=A.device)
-    M[gtA, gtB] = 1.0
-    
-    # Compute number of matched anchored neighbors
-    C = torch.mm(A, torch.mm(M, B.T))   # shape (nA, nB)
-    # Degrees
-
-   # C = torch.log1p(C)
-    #sim =-2*C
-    
-    return C
-def one_hop_similarity_matrix(A, B, gtA, gtB):
-    """
-    Vectorized 1-hop similarity based on anchor matches.
-    A, B: adjacency matrices (torch.Tensor)
-    gtA, gtB: anchor index lists
-    """
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
-
-    # Anchor matrix M
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=A.device)
-    M[gtA, gtB] = 1.0
-    
-    # Compute number of matched anchored neighbors
-    C = torch.mm(A, torch.mm(M, B.T))   # shape (nA, nB)
-    maskA = torch.zeros(nA, dtype=torch.float64, device=device)
-    maskA[gtA] = 1.0
-    degA_gt = A @ maskA.unsqueeze(1)
-    maskB = torch.zeros(nB, dtype=torch.float64, device=device)
-    maskB[gtB] = 1.0
-    degB_gt = B @ maskB.unsqueeze(1)
-    # Degrees
-    denom = degA_gt + degB_gt.T  # shape (nA, nB)
-
-    
-    # Similarity matrix
-    sim = torch.zeros_like(C)
-    sim[denom == 0] = 1.0
-    sim[denom != 0] = 2 * C[denom != 0] / denom[denom != 0]
-    #sim =-2*C
-    
-    return sim
 def synchronize_graphs(G, G_Q, anchors_G, anchors_G_Q):
     """
     Create new graphs G1 and G1_Q where edges between aligned anchors
@@ -410,106 +146,8 @@ def synchronize_graphs(G, G_Q, anchors_G, anchors_G_Q):
             else:
                 counter1=counter1+1
     return G1, G1_Q
-def one_hop_cost_neighbors(A, B, gtA, gtB):
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
 
-    # Anchor mapping matrix
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=device)
-    M[gtA, gtB] = 1.0
 
-    # Count matched anchored neighbors
-    C = torch.mm(A, torch.mm(M, B.T))  # # of matched anchored neighbors
-    # Total anchored neighbors for i and j
-    maskA = torch.zeros(nA, dtype=torch.float64, device=device)
-    maskA[gtA] = 1.0
-    degA_gt = A @ maskA.unsqueeze(1)
-    maskB = torch.zeros(nB, dtype=torch.float64, device=device)
-    maskB[gtB] = 1.0
-    degB_gt = B @ maskB.unsqueeze(1)
-    # Cost = fraction of mismatched anchored neighbors
-    denom = degA_gt + degB_gt.T
-    cost = torch.zeros_like(C)
-    nonzero = denom != 0
-    w = torch.log1p(denom) / torch.log1p(denom.max())
-    #cost[nonzero] = (degA_gt + degB_gt.T - 2*C)[nonzero] / denom[nonzero]
-    cost[nonzero] = w[nonzero] * ((degA_gt + degB_gt.T - 2*C)[nonzero] / denom[nonzero])
-
-    # If both nodes have no anchored neighbors, cost = 0
-    cost[denom == 0] = 0.0
-    return cost
-def two_hop_similarity_matrix(A, B, gtA, gtB):
-
-    """
-    Vectorized 2-hop similarity based on ground-truth anchor matches.
-    Only neighbors that have a ground-truth correspondence are counted.
-
-    Args:
-        A, B: adjacency matrices (torch.Tensor, shape nA x nA and nB x nB)
-        gtA, gtB: lists of ground-truth anchor indices
-
-    Returns:
-        sim: similarity matrix (nA x nB)
-    """
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
-
-    # Compute 2-hop adjacency matrices (binary)
-    A2 = ((A + A @ A) > 0).double()
-    B2 = ((B + B @ B) > 0).double()
-    # Anchor mapping matrix
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=device)
-    M[gtA, gtB] = 1.0
-
-    # Count matched anchored 2-hop neighbors
-    C = A2 @ M @ B2.T  # shape (nA, nB)
-
-    # Precompute degrees of neighbors that can participate in ground-truth matching
-    maskA = torch.zeros(nA, dtype=torch.float64, device=device)
-    maskA[gtA] = 1.0
-    degA_gt = A2 @ maskA.unsqueeze(1)  # shape (nA, 1)
-
-    maskB = torch.zeros(nB, dtype=torch.float64, device=device)
-    maskB[gtB] = 1.0
-    degB_gt = B2 @ maskB.unsqueeze(1)  # shape (nB, 1)
-
-    # Denominator: sum of mappable neighbors
-    denom = degA_gt + degB_gt.T  # shape (nA, nB)
-
-    # Similarity matrix
-    sim = torch.zeros_like(C)
-    sim[denom == 0] = 1.0
-    sim[denom != 0] = 2 * C[denom != 0] / denom[denom != 0]
-
-    return sim
-
-def two_hop_similarity_matrix_Simple(A, B, gtA, gtB):
-
-    """
-    Vectorized 2-hop similarity based on ground-truth anchor matches.
-    Only neighbors that have a ground-truth correspondence are counted.
-
-    Args:
-        A, B: adjacency matrices (torch.Tensor, shape nA x nA and nB x nB)
-        gtA, gtB: lists of ground-truth anchor indices
-
-    Returns:
-        sim: similarity matrix (nA x nB)
-    """
-    nA, nB = A.shape[0], B.shape[0]
-    device = A.device
-
-    # Compute 2-hop adjacency matrices (binary)
-    A2 = ((A + A @ A) > 0).double()
-    B2 = ((B + B @ B) > 0).double()
-    # Anchor mapping matrix
-    M = torch.zeros((nA, nB), dtype=torch.float64, device=device)
-    M[gtA, gtB] = 1.0
-
-    # Count matched anchored 2-hop neighbors
-    C = A2 @ M @ B2.T  # shape (nA, nB)
-    C = torch.log1p(C)
-    return C
 
 iters=5
 tun=[1,10,11,12]
@@ -517,31 +155,14 @@ tuns=["Alpine","Regal","GradP","JOENA","SlotAlign","NextAlign","Parrot"]
 #SUperivtuns=["Alpine",","GradP","JOENA",","NextAlign","Parrot"]
 #Supervitun=[1,10,11,13,14]
 
-tun=[1,6,10,11,12,13,14]
-tuns=["Alpine","Parrot","NextAlign"]
+tun=[1,10,11,13,14]
+tuns=["Alpine","GradP","Joena","NextAlign","Parrot"]
 nL=["testing"]
 foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi','cora','foursquare','phone']
 n_G2 = [1118,5712,9872,1043,1767,2708,5120,1000] #s
 n_G=   [3906,6010,9916,1043,1767,2708,5313,1003] #t
 gt_size=[1118,5174,6325,1043,1767,2708,1609,1000]
 attrN=[True,True,True,False,True,True,False,False]
-foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi','cora','phone']
-n_G2 = [1118,5712,9872,1043,1767,2708,1000] #s
-n_G=   [3906,6010,9916,1043,1767,2708,1003] #t
-gt_size=[1118,5174,6325,1043,1767,2708,1000]
-attrN=[True,True,True,False,True,True,False,False]
-foldernames=['foursquare']
-n_G2 = [5120] #s
-n_G=   [5313] #t
-gt_size=[1609]
-attrN=[False]
-
-#foldernames=['acm_dblp']
-#n_G2 = [9872] #s
-#n_G=   [9916] #t
-#gt_size=[6325]
-#attrN=[True]
-
 
 
 ratio=0.05
@@ -595,6 +216,7 @@ for k in range(0,len(foldernames)):
                     csv2=data['x2']
                     csv1=data['x1']
                 for iter in range(iters):
+                    
                     if (foldernames[k]=="douban" or foldernames[k]=="acm_dblp"):
                         F2=csv2
                         F1=csv1
@@ -603,7 +225,6 @@ for k in range(0,len(foldernames)):
                     if (foldernames[k]=="fb_tw"):
                         F2=F2*0
                         F1=F1*0
-                        
                     data_GT = np.loadtxt(f"./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True_{ratio}_{iter}.txt", dtype=int)
                     #F2=csv2
                     #F1=csv1
@@ -613,10 +234,8 @@ for k in range(0,len(foldernames)):
                     file_subgraph = f'{folder_}/subgraph.txt'
                     file_nodes = f'{folder_}/nodes.txt'
                     #Q_real = read_list(file_nodes)
-                    #G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
                     G_Q = read_real_graph(n = n_G2[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_edge.txt')
-                    if (foldernames[k]=="phone"):
-                      
+                    if (foldernames[k]=="phone"):                      
                         Perm=  load_permutation(iter)
                         A1_perm=nx.to_numpy_array(G_Q, dtype=int)
                         A_perm = A1_perm[Perm][:, Perm]
@@ -698,8 +317,8 @@ for k in range(0,len(foldernames)):
                         #if(foldernames[k]=="fb_tw" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
                         if(attrN[k]==False and foldernames[k]!="foursquare"):
                             mun=1
-                            #if (foldernames[k]=="phone"):
-                            #    mun=8
+                            if (foldernames[k]=="phone"):
+                                mun=8
                         G1,G1_Q=seed_link(anchors_G,anchors_GQ,G,G_Q)
                         _, list_of_nodes, forb_norm = Alpine_supervised(G1_Q.copy(), G1.copy(),F1_n,F2_n,anchors_GQ,anchors_G,mun,weight=2)                    
                     elif(tun[ptun]==6):
@@ -724,10 +343,8 @@ for k in range(0,len(foldernames)):
                         similarity = JOENA(foldernames[k],ratio,attrN[k],data_GT1,Perm)
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
                             similarity=similarity.T
-                        
                         #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])
@@ -759,7 +376,6 @@ for k in range(0,len(foldernames)):
                         
                         #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])
@@ -781,7 +397,6 @@ for k in range(0,len(foldernames)):
                         
                         #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])                    

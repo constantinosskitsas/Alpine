@@ -16,8 +16,23 @@ import random
 import torch
 from Grad.data import *
 import sys
-from pred import convertToPermHungarian2A
 from numpy import linalg as LA
+
+def convertToPermHungarian2A(row_ind,col_ind,n, m):
+    col_ind1=col_ind
+    for i in range(n):
+        if (i not in col_ind1):
+                col_ind1.append(i)
+    m=max(n,m)
+    P = np.zeros((m,m))
+    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    ans = []
+    for i in range(n):
+        P[col_ind[i]][row_ind[i]] = 1
+        if (row_ind[i] >= n) or (col_ind[i] >= m):
+            continue
+        ans.append((row_ind[i], col_ind[i]))
+    return P, ans
 def gradMain(Gq, Gt, mu=1, niter=10, weight=1.0):
     np.random.seed(0)
     G1=Gt.copy()

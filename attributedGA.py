@@ -3,7 +3,7 @@ import numpy as np
 import math
 import torch
 from numpy import linalg as LA
-from pred import convertToPermHungarian,eucledian_dist,feature_extraction1,feature_extraction,convertToPermHungarian2new
+from pred import convertToPermHungarian2new,AlpineL
 import networkx as nx
 from GradP.gradp import gradPMain
 import time
@@ -20,7 +20,8 @@ torch.set_num_threads(40)
 folderall = 'data3_'
 experimental_folder=f'./{folderall}/res/'
 new_id = generate_new_id(get_max_previous_id(experimental_folder))
-experimental_folder=f'./{folderall}/res/_{new_id}/'   
+experimental_folder=f'./{folderall}/res/_{new_id}/'  
+
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -75,92 +76,16 @@ def add_noise_per_row(features, noise_fraction=0.1):
     return noisy_features
 
 # Apply to F1 and F2
-def Alpine_pp_labels(A,B,feat, K, niter,A1,weight=1):
-    m = len(A)
-    n = len(B)
-    I_p = torch.zeros((m,m+1),dtype = torch.float64)
-    for i in range(m):
-        I_p[i,i] = 1
-    Pi=torch.ones((m+1,n),dtype = torch.float64)
-    feat1 = torch.tensor(feat, dtype=torch.float64, device=Pi.device)
-    Pi[:-1,:] *= 1/n
-    Pi[-1,:] *= (n-m)/n
-    reg = 1.0
-    mat_ones = torch.ones((m+1, n), dtype = torch.float64)
-    ones_ = torch.ones(n, dtype = torch.float64)
-    ones_augm_ = torch.ones(m+1, dtype = torch.float64)
-    ones_augm_[-1] = n-m
-    gamma=1
-    A0 = torch.mean(np.abs(feat1))
-    dd=1
-    degrees = A.sum(dim=1)
-# Average degree = mean of all degrees
-    avg_degree = degrees.mean()
-    degrees1=B.sum(dim=1)
-    avg_degree1 = degrees1.mean()
-    if (avg_degree<3 or avg_degree1<3):
-        dd=2
-    for i in range(10):
-        for it in range(1, 11):
-            deriv=(-4*I_p.T@(A-I_p@Pi@B@Pi.T@I_p.T)@I_p@Pi@B)*dd+i*(mat_ones - 2*Pi)+K
-            S0 = deriv.abs().mean().item()  # PyTorch version
-            gamma_a = gamma * S0 / (A0+0.0001 )
-            deriv = deriv + gamma_a*feat1
-            q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 500, stopThr = 1e-9) 
-            alpha = (2 / float(2 + it) )    
-            Pi[:m,:n] = Pi[:m,:n] + alpha * (q[:m,:n] - Pi[:m,:n])
-    Pi=Pi[:-1]
-    P2,row_ind,col_ind = convertToPermHungarian(Pi, n, m)
-    forbnorm = LA.norm(A - I_p[:,:m].T@P2@B@P2.T@I_p[:,:m], 'fro')**2
-    return Pi, forbnorm,row_ind,col_ind
-def AlpineL(Gq, Gt,f1=None,f2=None, mu=1, niter=10, weight=2):
-    n1 = Gq.number_of_nodes()
-    n2 = Gt.number_of_nodes()
-    n = max(n1, n2)
-    for node in nx.isolates(Gq):
-        Gq.add_edge(node, node)
-    for node in nx.isolates(Gt):
-        Gt.add_edge(node, node)
-        
-    Gq.add_node(n1)
-    Gq.add_edge(n1,n1)
-    A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
-    B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = eucledian_dist(f1,f2,n)
-    zeros_row = np.zeros((1, feat.shape[1]))
-    feat=np.vstack([feat, zeros_row])
-    
-# Append it to feat
-    
-    #weight=1
-    if (weight==2):
-        F1 = feature_extraction1(Gq)
-        F2 = feature_extraction1(Gt) 
-    else:
-        F1 = feature_extraction(Gq)
-        F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
-    D = torch.tensor(D, dtype = torch.float64)
-    P, forbnorm,row_ind,col_ind = Alpine_pp_labels(A[:n1,:n1], B,feat, mu*D, niter,A)
-    _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
-    list_of_nodes = []
-    for el in ans: list_of_nodes.append(el[1])
-    return ans, list_of_nodes, forbnorm    
+ 
 iters=1
 tun=[1,6,10,12,14]
 tuns=["Alpine","REGAL","GradP","SlotaA","HTC"]
-tun=[14]
-tuns=["HTC"]
 nL=["testing"]
 foldernames=['douban','allmv_tmdb','acm_dblp','fb_tw','ppi']
 n_G2 = [1118,5712,9872,1043,1767] #s
 n_G=[3906,6010,9916,1043,1767] #t
 gt_size=[1118,5174,6325,1043,1767]
-foldernames=['acm_dblp']
-n_G2 = [9872] #s
-n_G=   [39916] #t
-gt_size=[6325]
-attrN=[True]
+attrN=[True,True,True,True,True]
 seed=1
 
 for k in range(0,len(foldernames)):
@@ -185,12 +110,9 @@ for k in range(0,len(foldernames)):
                 #Feat = np.linalg.norm(diffs, axis=2)  # shape: (n1, n2)
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
-                #print(f'Size of subgraph: {n_Q}')
-                
+                #print(f'Size of subgraph: {n_Q}')                
                 F2=F2
                 F1=F1
-                
-
 # Split into two arrays
                 if (foldernames[k]=="douban"):
                     csv2 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr1.csv", header=None).iloc[:, 1:].to_numpy()
@@ -251,11 +173,7 @@ for k in range(0,len(foldernames)):
                     start = time.time()
                     F1_c  = F1.copy()
                     F2_c  = F2.copy()
-
-# Target number of rows
                     n_rows = G_Q.number_of_nodes()
-
-# Pad F1 and F2
                     F1_c = pad_numpy_rows(F1_c, n_rows)
                     n_rows = G.number_of_nodes()
                     F2_c = pad_numpy_rows(F2_c, n_rows)
@@ -278,7 +196,6 @@ for k in range(0,len(foldernames)):
                         similarity = SlotaA(G_Q.copy(), G.copy(),F1.copy(),F2.copy(),foldernames[k])
                         similarity=similarity.T #maybe PPI not? to check.
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])   
@@ -299,12 +216,10 @@ for k in range(0,len(foldernames)):
                             similarity=similarity.T
                         print('htc shape: ', similarity.shape)
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])
-                    
-                    
+                                    
                     else:
                         print("Error")
                         exit()
