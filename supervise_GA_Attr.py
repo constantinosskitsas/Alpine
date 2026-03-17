@@ -1,29 +1,29 @@
 import networkx as nx
 import torch
 import numpy as np
-from pred import convertToPermHungarian,Alpine_supervised
-from pred import convertToPermHungarian2new
+from numpy import linalg as LA
 import ot
 import scipy
-from numpy import linalg as LA
-from GradP.gradp import gradPMain
 import time
 import os
-from help_functions import read_graph
-from help_functions import read_real_graph, read_list
-from resultsfolder import generate_new_id,create_new_folder,get_max_previous_id 
 import pandas as pd
+from help_functions import read_real_graph, read_list
+from resultsfolder import generate_new_id,get_max_previous_id 
 from JOENA.Joena_main import JOENA
 from SlotaAlign.SlotaAlign_main import SlotaA
 from NextAlign.NextA import NextAlign
 from Parrot.parrot_main import Parrot
 from REGAL.regal import RegalATT
+from pred import Alpine_supervised,convertToPermHungarian2new
+from GradP.gradp import gradPMain
+
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
 folderall = 'data3_'
 experimental_folder=f'./{folderall}/res/'
 new_id = generate_new_id(get_max_previous_id(experimental_folder))
-experimental_folder=f'./{folderall}/res/_{new_id}/'   
+experimental_folder=f'./{folderall}/res/_{new_id}/'  
+ 
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False):
     print('---- ',name, '----')
     print('----> Forb_norm:', forb_norm)
@@ -148,13 +148,7 @@ def synchronize_graphs(G, G_Q, anchors_G, anchors_G_Q):
     return G1, G1_Q
 
 
-
 iters=5
-tun=[1,10,11,12]
-tuns=["Alpine","Regal","GradP","JOENA","SlotAlign","NextAlign","Parrot"]
-#SUperivtuns=["Alpine",","GradP","JOENA",","NextAlign","Parrot"]
-#Supervitun=[1,10,11,13,14]
-
 tun=[1,10,11,13,14]
 tuns=["Alpine","GradP","Joena","NextAlign","Parrot"]
 nL=["testing"]
@@ -163,25 +157,13 @@ n_G2 = [1118,5712,9872,1043,1767,2708,5120,1000] #s
 n_G=   [3906,6010,9916,1043,1767,2708,5313,1003] #t
 gt_size=[1118,5174,6325,1043,1767,2708,1609,1000]
 attrN=[True,True,True,False,True,True,False,False]
-
-
 ratio=0.05
 
-#douban
-#foldernames=['ppi']
-#n_G2 = [1767] #s
-#n_G=[1767] #t
-#gt_size=[1767]
-tun=[1]
-tuns=["Alpine"]
-#attrN=[True]
 Perm=None
 for k in range(0,len(foldernames)):
-        #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         G = read_real_graph(n = n_G[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_edge.txt')
         print(G)
         DGS=G.number_of_nodes()
-    # Get the number of edges
         DGES = G.number_of_edges()       
         for _ in nL: 
         #for noiseL in nL: 
@@ -198,9 +180,6 @@ for k in range(0,len(foldernames)):
                 else:
                     F2 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_feat.txt', dtype=float)  # shape: (n1, k)
                     F1 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_feat.txt', dtype=float)  # shape: (n2, k)
-                #diffs = B_feat[:, None, :] - A_feat[None, :, :]   # shape: (n1, n2, k)
-                #X = np.abs(diffs).sum(axis=2)  # shape: (n1, n2)
-                #Feat = np.linalg.norm(diffs, axis=2)  # shape: (n1, n2)
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
                 F2=F2
@@ -261,7 +240,7 @@ for k in range(0,len(foldernames)):
 # 2️⃣ Build A→B mapping with -1 for missing
                     true1=False
                     true2=False
-                    #if douban/dblp/fb_tw no+1 -allmv_tmdbwith +1
+                    #if allmv_tmdbwith +1
                     if (foldernames[k]=="allmv_tmdb"):
                         max_A=max_A+1
                         max_B=max_B+1
@@ -280,15 +259,11 @@ for k in range(0,len(foldernames)):
                         else:
                             B_to_A[b] = a
                     print(true1,true2)
-                    #A = nx.adjacency_matrix(G_Q).todense()
                     QGS=G_Q.number_of_nodes()
                     QGES = G_Q.number_of_edges()
                     anchors_G = data_GT[:, 1].tolist()
                     anchors_GQ = data_GT[:, 0].tolist()
-                    #G1,G1_Q=synchronize_graphs(G,G_Q,anchors_G,anchors_GQ)
-                    print(np.shape(F2))
-                    print("G_Q",G_Q.number_of_edges())
-                    print("G",G.number_of_edges())
+
                     if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb" or foldernames[k]=="foursquare"  ):
                         anchors_G = data_GT[:, 0].tolist()
                         anchors_GQ = data_GT[:, 1].tolist()
@@ -305,16 +280,10 @@ for k in range(0,len(foldernames)):
                     else:
                         F2_n=F2
                         F1_n=F1
-                        #F2_n*=0
-                    #F1_n*=0
                     start = time.time()
-                    #compare_features(F1,F2,A_to_B)
-                    #compare_features(F1,F2,B_to_A)
                     if(tun[ptun]==1):
                         print("Alpine")
-                        mun=0.1
-                        #mun=0
-                        #if(foldernames[k]=="fb_tw" or foldernames[k]=="foursquare" or foldernames[k]=="phone"):
+                        mun=0.1                       
                         if(attrN[k]==False and foldernames[k]!="foursquare"):
                             mun=1
                             if (foldernames[k]=="phone"):
@@ -343,7 +312,6 @@ for k in range(0,len(foldernames)):
                         similarity = JOENA(foldernames[k],ratio,attrN[k],data_GT1,Perm)
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
                             similarity=similarity.T
-                        #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
                         P2, row_ind, col_ind = PermHungarian(similarity)
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
@@ -354,7 +322,6 @@ for k in range(0,len(foldernames)):
                         print("SlotaAlign")
                         similarity = SlotaA(G_Q.copy(), G.copy(),F1.copy(),F2.copy(),foldernames[k])
                         P2, row_ind, col_ind = PermHungarian(similarity)
-                        #P2, row_ind, col_ind = convertToPermHungarian(similarity, QGS, n_G[k])
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
                         for el in ans: list_of_nodes.append(el[1])
@@ -364,17 +331,14 @@ for k in range(0,len(foldernames)):
                         if foldernames[k] not in ["acm_dblp","ppi","cora"]:
                             print("in")
                             data_GT1 = data_GT[:, [1, 0]]  # swap columns
-                            #data_GT1=data_GT
-                            
+                            #data_GT1=data_GT                            
                         else:
                             data_GT1=data_GT
                         if foldernames[k] in ["phone"]:
                             data_GT1[:, 0] = Perm[data_GT1[:, 0]]         
                         similarity = NextAlign(foldernames[k],attrN[k],data_GT1,Perm)
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
-                            similarity=similarity
-                        
-                        #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
+                            similarity=similarity                        
                         P2, row_ind, col_ind = PermHungarian(similarity)
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []
@@ -383,19 +347,14 @@ for k in range(0,len(foldernames)):
                         forb_norm=1
                         print("Parrot")
                         if foldernames[k] in ["acm_dblp","ppi","cora"]:
-                            print("in")
                             data_GT1 = data_GT[:, [1, 0]]  # swap columns
                         else:
                             data_GT1=data_GT
                             if foldernames[k] in ["phone"]:
                                 data_GT1[:, 0] = Perm[data_GT1[:, 0]] 
                         similarity = Parrot(foldernames[k],G1_Q.copy(),G1.copy(),F1_n.copy(),F2_n.copy() ,data_GT1)
-                        #similarity = Parrot(foldernames[k],G1.copy(),G1_Q.copy(),F2_n,F1_n,data_GT1)
-
                         if (foldernames[k]=="douban" or foldernames[k]=="allmv_tmdb"or foldernames[k]=="foursquare"or foldernames[k]=="cora"or foldernames[k]=="phone"):
-                            similarity=similarity
-                        
-                        #cora,douban,fb-tw,phone,allmv_tmdb,ppi  works
+                            similarity=similarity                
                         P2, row_ind, col_ind = PermHungarian(similarity)
                         _, ans=convertToPermHungarian2new(row_ind,col_ind, QGS, n_G[k])
                         list_of_nodes = []

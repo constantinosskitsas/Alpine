@@ -74,10 +74,8 @@ def add_noise_per_row(features, noise_fraction=0.1):
         noisy_features[i, zero_indices] = 0
 
     return noisy_features
-
-# Apply to F1 and F2
  
-iters=1
+iters=5
 tun=[1,6,10,12,14]
 tuns=["Alpine","REGAL","GradP","SlotaA","HTC"]
 nL=["testing"]
@@ -89,11 +87,9 @@ attrN=[True,True,True,True,True]
 seed=1
 
 for k in range(0,len(foldernames)):
-        #G = read_real_graph(n = n_G[k], name_ = f'./raw_data/{foldernames[k]}.txt')
         G = read_real_graph(n = n_G[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_edge.txt')
         print(G)
         DGS=G.number_of_nodes()
-    # Get the number of edges
         DGES = G.number_of_edges()       
         for _ in nL: 
         #for noiseL in nL: 
@@ -105,15 +101,10 @@ for k in range(0,len(foldernames)):
                 file_A_results.write(f'DGS DGES QGS QGES PGS PGES forb_norm accuracy spec_norm time isomorphic \n')
                 F2 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_feat.txt', dtype=float)  # shape: (n1, k)
                 F1 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_feat.txt', dtype=float)  # shape: (n2, k)
-                #diffs = B_feat[:, None, :] - A_feat[None, :, :]   # shape: (n1, n2, k)
-                #X = np.abs(diffs).sum(axis=2)  # shape: (n1, n2)
-                #Feat = np.linalg.norm(diffs, axis=2)  # shape: (n1, n2)
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
-                #print(f'Size of subgraph: {n_Q}')                
                 F2=F2
                 F1=F1
-# Split into two arrays
                 if (foldernames[k]=="douban"):
                     csv2 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr1.csv", header=None).iloc[:, 1:].to_numpy()
                     csv1 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr2.csv", header=None).iloc[:, 1:].to_numpy()
@@ -135,8 +126,6 @@ for k in range(0,len(foldernames)):
                     os.makedirs(f'{folder1_}', exist_ok=True)
                     file_subgraph = f'{folder_}/subgraph.txt'
                     file_nodes = f'{folder_}/nodes.txt'
-                    #Q_real = read_list(file_nodes)
-                    #G_Q= read_real_graph(n = n_Q, name_ = file_subgraph)
                     G_Q = read_real_graph(n = n_G2[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_edge.txt')
                     pairs = []
                     with open(f'./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True.txt', "r") as f:
@@ -147,7 +136,7 @@ for k in range(0,len(foldernames)):
                     max_B = n_G2[k]
                     true1=False
                     true2=False
-                    #if douban/dblp/fb_tw no+1 -allmv_tdmbwith +1
+                    #if -allmv_tdmbwith +1
                     if (foldernames[k]=="allmv_tmdb"):
                         max_A=max_A+1
                         max_B=max_B+1
@@ -167,9 +156,6 @@ for k in range(0,len(foldernames)):
                     print(true1,true2)
                     QGS=G_Q.number_of_nodes()
                     QGES = G_Q.number_of_edges()
-                    print(np.shape(F2))
-                    print("G_Q",G_Q.number_of_edges())
-                    print("G",G.number_of_edges())
                     start = time.time()
                     F1_c  = F1.copy()
                     F2_c  = F2.copy()
@@ -177,12 +163,9 @@ for k in range(0,len(foldernames)):
                     F1_c = pad_numpy_rows(F1_c, n_rows)
                     n_rows = G.number_of_nodes()
                     F2_c = pad_numpy_rows(F2_c, n_rows)
-                    #compare_features(F1,F2,A_to_B)
-                    #compare_features(F1,F2,B_to_A)
                     if(tun[ptun]==1):
                         print("Alpine")
                         mun=0.1
-                        mun=0
                         _, list_of_nodes, forb_norm = AlpineL(G_Q.copy(), G.copy(),F1,F2,mun,weight=2)
                     elif(tun[ptun]==10):
                         print("GradAlignP")
@@ -203,12 +186,6 @@ for k in range(0,len(foldernames)):
                     elif tun[ptun] == 14:
                         forb_norm=1
                         print("HTC")
-                        #if foldernames[k] in ["acm_dblp","ppi","cora"]:
-                        #    print("in")
-                        #    data_GT1 = data_GT[:, [1, 0]]  # swap columns
-                         #   
-                        #else:
-                        #    data_GT1=data_GT
                         ratio=0 
                         data_GT1=None   
                         similarity = HTC_main(foldernames[k], ratio, data_GT1, f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_orca.txt', f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_orca.txt', src_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_laps.pth', trg_laps_name=f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_laps.pth')
