@@ -15,22 +15,10 @@ from multiprocessing import Pool
 import warnings
 import ot
 from memory_profiler import profile
+from hung_utils import convertToPermHungarian2new,convertToPermHungarian
 warnings.filterwarnings('ignore')
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
-
-
-def convertToPermHungarian2new(row_ind, col_ind, n, m):
-    P = torch.zeros((n,m), dtype = torch.float64)
-    #A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
-    ans = []
-    n = max(len(row_ind), len(col_ind))
-    for i in range(n):
-        #P[row_ind[i]][col_ind[i]] = 1
-        #if (row_ind[i] >= n) or (col_ind[i] >= m):
-        #    continue
-        ans.append((row_ind[i], col_ind[i]))
-    return P, ans
 
 
 def feature_extraction1(G,simple = True):
@@ -179,39 +167,6 @@ def convex_init(A, B, D, mu, niter, n1):
     forbnorm = LA.norm(A[:n1,:n1] - (P2@B@P2.T)[:n1,:n1], 'fro')**2
     return P, forbnorm,row_ind,col_ind
 
-def convertToPermHungarian(M, n1, n2):
-
-    row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    n = len(M)
-    P = np.zeros((n2, n1))
-    ans = []
-    for i in range(n):
-        P[row_ind[i]][col_ind[i]] = 1
-        if (row_ind[i] >= n1) or (col_ind[i] >= n2):
-            continue
-        ans.append((row_ind[i], col_ind[i]))
-    return P, row_ind,col_ind
-
-def convertToPermGreedy(M, n1, n2):
-    n = len(M)
-    indices = torch.argsort(M.flatten())
-    row_done = np.zeros(n)
-    col_done = np.zeros(n)
-
-    P = np.zeros((n, n))
-    ans = []
-    for i in range(n*n):
-        cur_row = int(indices[n*n - 1 - i]/n)
-        cur_col = int(indices[n*n - 1 - i]%n)
-        if (row_done[cur_row] == 0) and (col_done[cur_col] == 0):
-            P[cur_row][cur_col] = 1
-            row_done[cur_row] = 1
-            col_done[cur_col] = 1
-            if (cur_row >= n1) or (cur_col >= n2):
-                continue
-            ans.append((cur_row, cur_col))
-    return P, ans
-
 def align_new(Gq, Gt, mu=1, niter=10,weight=1):
     n1 = len(Gq.nodes())
     n2 = len(Gt.nodes())
@@ -333,7 +288,6 @@ def Fugal(Gq, Gt, mu=1, niter=10):
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm 
 
-
 def Alpine_pp_labels(A,B,feat, K, niter,A1,weight=1):
     m = len(A)
     n = len(B)
@@ -365,7 +319,7 @@ def Alpine_pp_labels(A,B,feat, K, niter,A1,weight=1):
             S0 = deriv.abs().mean().item()  # PyTorch version
             gamma_a = gamma * S0 / (A0+0.0001 )
             deriv = deriv + gamma_a*feat1
-            q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 500, stopThr = 1e-9) 
+            q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 1500, stopThr = 1e-9) 
             alpha = (2 / float(2 + it) )    
             Pi[:m,:n] = Pi[:m,:n] + alpha * (q[:m,:n] - Pi[:m,:n])
     Pi=Pi[:-1]

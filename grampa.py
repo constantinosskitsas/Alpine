@@ -1,6 +1,5 @@
 import numpy as np
-from numpy.linalg import inv
-from numpy.linalg import eigh,eig
+from numpy.linalg import inv,eigh,eig
 import networkx as nx 
 import random
 from math import floor, log2

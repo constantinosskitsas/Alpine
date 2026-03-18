@@ -109,7 +109,7 @@ for k in range(0,len(foldernames)):
                         if (a>=max_A):
                             true1=True
                         else:
-                         A_to_B[a] = b
+                            A_to_B[a] = b
 # 3️⃣ Build B→A mapping with -1 for missing
                     B_to_A = [-1] * (max_B)
                     for a, b in pairs:
