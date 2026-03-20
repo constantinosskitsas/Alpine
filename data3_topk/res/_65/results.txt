@@ -1,0 +1,1 @@
+G1,G2,K,Algo,FROB,FROB1,FROB2,FROB3,FROB4,FROB5,HR,HR1,HR2,HR3,HR4,HR5,TIME,CRP,CRP1,CRP2,CRP3,CRP4,CRP5,trial,local_g1,local_g2,local_g1_1,local_g2_1,local_g1_2,local_g2_2,local_g1_3,local_g2_3,local_g1_4,local_g2_4,local_g1_5,local_g2_5,initialization

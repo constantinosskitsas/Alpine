@@ -14,8 +14,8 @@ import time
 from multiprocessing import Pool
 import warnings
 import ot
-from memory_profiler import profile
-from hung_utils import convertToPermHungarian2new,convertToPermHungarian
+#from memory_profiler import profile
+from hung_utils import convertToPermHungarian2new,convertToPermHungarian,PermHungarian
 from feature_util import feature_extraction,feature_extraction1
 warnings.filterwarnings('ignore')
 os.environ["MKL_NUM_THREADS"] = "40"
@@ -374,8 +374,8 @@ def AlpineTopk(A,B,k,t1,P1=None,beta=1.0):
     A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
     B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
     
-    F1 = feature_extraction1(A1,True)
-    F2 = feature_extraction1(C,True)
+    F1 = feature_extraction1(A1)
+    F2 = feature_extraction1(C)
     D = euclidean_distances(F2, F1)
     D = D[:np.shape(B)[0]+1,:np.shape(A)[0]]
     D=torch.tensor((D), dtype = torch.float64)
@@ -383,7 +383,7 @@ def AlpineTopk(A,B,k,t1,P1=None,beta=1.0):
     P = P[:-1]
     P=P.detach().numpy()
     P3=np.multiply(P,1-P[-1].reshape(1,len(A)))
-    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    _,row_ind,col_ind = PermHungarian(P)
     return P,P3,col_ind
 
 def AlpineTorchTopk(A,B,k,t1,P1=None,beta=1.0):
@@ -393,8 +393,8 @@ def AlpineTorchTopk(A,B,k,t1,P1=None,beta=1.0):
     C,A1=enlargeMatrices(C,A1,size)
     A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
     B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
-    F1 = feature_extraction1(A1,True)
-    F2 = feature_extraction1(C,True)
+    F1 = feature_extraction1(A1)
+    F2 = feature_extraction1(C)
     D = euclidean_distances(F2, F1)
     D = D[:np.shape(B)[0]+1,:np.shape(A)[0]]
     D=torch.tensor((D), dtype = torch.float64)
@@ -402,7 +402,7 @@ def AlpineTorchTopk(A,B,k,t1,P1=None,beta=1.0):
     P=P[:-1]
     P=P.detach().numpy()
     P3=P
-    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    _,row_ind,col_ind = PermHungarian(P)
     return P,P3,col_ind
 
 def AlpinePlusTopk(A,B,k,t1,P1=None,beta=1.0):
@@ -413,8 +413,8 @@ def AlpinePlusTopk(A,B,k,t1,P1=None,beta=1.0):
     A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
     B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
     
-    F1 = feature_extraction1(A1,True)
-    F2 = feature_extraction1(C,True)
+    F1 = feature_extraction1(A1)
+    F2 = feature_extraction1(C)
     D = euclidean_distances(F2, F1)
     D = D[:np.shape(B)[0]+1,:np.shape(A)[0]+1]
     if(D[-1,-1]!=0):
@@ -426,7 +426,7 @@ def AlpinePlusTopk(A,B,k,t1,P1=None,beta=1.0):
     P3=P1
     P=P.detach().numpy()
     P3=P3.detach().numpy()
-    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    _,row_ind,col_ind = PermHungarian(P)
     return P,P3,col_ind
 
 def Martian(A,B,k,t1,P1=None,beta=1.0):
@@ -437,8 +437,8 @@ def Martian(A,B,k,t1,P1=None,beta=1.0):
     A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
     B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
     
-    F1 = feature_extraction1(A1,True)
-    F2 = feature_extraction1(C,True)
+    F1 = feature_extraction1(A1)
+    F2 = feature_extraction1(C)
     D = euclidean_distances(F2, F1)
     D = D[:np.shape(B)[0]+1,:np.shape(A)[0]+1]        
     D[-1,-1]=0
@@ -448,7 +448,7 @@ def Martian(A,B,k,t1,P1=None,beta=1.0):
     P3 = P
     P=P.detach().numpy()
     P3=P3.detach().numpy()
-    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    _,row_ind,col_ind = PermHungarian(P)
     return P,P3,col_ind
 
 def Alpine_pp_torch(A,B, K, niter,A1,weight=1, optimizer='sinkhorn'):

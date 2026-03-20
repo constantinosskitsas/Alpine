@@ -11,7 +11,7 @@ from scipy.optimize import linear_sum_assignment
 from ssSGM import ssSGM_simulation
 os.environ["MKL_NUM_THREADS"] = "36"
 torch.set_num_threads(36)
-from hung_utils import PermHungarian,EVAL_new
+from hung_utils import PermHungarian,EVAL_new_diff
 from save_util import save_pairs_to_txt,save_high_similarity_pairs,save_list_to_txt,save_matrix_to_excel
 from pred import AlpineTopk,AlpineTorchTopk,AlpinePlusTopk,Martian
 
@@ -64,14 +64,13 @@ algorithms_name = {
 }
 
 ksizes=[0.6,0.7,0.8,0.9]
-# ksizes=[0.9]
+ksizes=[0.9]
 algorithms=["Alpine","TOP-K","AlpineLP","TOP-KLP"]
 ptune=[2,3,4,6,7,5]
 ptune=[4]
-ptune=[2, 3, 4]
-ptune=[8]
+ptune=[2, 3, 4,8]
 algorithms=["Penalty"]
-folderall = 'experiment_sssgm'
+folderall = 'data3_topk'
 experimental_folder=f'./{folderall}/res/'
 new_id = generate_new_id(get_max_previous_id(experimental_folder))
 experimental_folder=f'./{folderall}/res/_{new_id}'
@@ -100,18 +99,18 @@ for i in range(len(graph_name_and_size) - 1):
                 start = time.time()
                 if(tun==1):
                     print("Alpine")
-                    P,P1, list_of_nodes = AlpineTopk(G.copy(),G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes = AlpineTopk(G.copy(),G_Q.copy(),n_Q,t1=10)
                 elif(tun==2):
                     start1 = time.time()
-                    P,P1, list_of_nodes  = P,P1, list_of_nodes = AlpineTorchTopk(G.copy(),G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = P,P1, list_of_nodes = AlpineTorchTopk(G.copy(),G_Q.copy(),n_Q,t1=10)
                     end1 = time.time()
                     AlpTime=end1-start1
                 elif(tun==3):
                     print("k-Size")
-                    P,P1, list_of_nodes  = AlpinePlusTopk(G.copy(),G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = AlpinePlusTopk(G.copy(),G_Q.copy(),n_Q,t1=10)
                 elif(tun==4):
                     print("k-Penalty")
-                    P,P1, list_of_nodes  = Martian(G.copy(),G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = Martian(G.copy(),G_Q.copy(),n_Q,t1=10)
                 elif(tun==8):
                     print("ssSGM")
                     P = ssSGM_simulation(nx.to_numpy_array(G_Q.copy()), nx.to_numpy_array(G.copy()), 0, n_Q, 30, 0.001)
@@ -125,19 +124,19 @@ for i in range(len(graph_name_and_size) - 1):
                 num_components_A, num_components_B = 0, 0
                 if (tun==8):
                     print(type(G), type(G_Q), type(P))
-                    forb_norm,hr,num_components_A,num_components_B=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=True,initial_node=-1, return_n_components=True)
+                    forb_norm,hr,num_components_A,num_components_B=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=True,initial_node=-1, return_n_components=True)
                     forb_norm1,hr1 = 0, 0
                     forb_norm2,hr2 = 0, 0
                     forb_norm3,hr3 = 0, 0
                     forb_norm4,hr4 = 0, 0
                     forb_norm5,hr5 = 0, 0
                 else:
-                    forb_norm,hr=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=-1)
-                    forb_norm1,hr1=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=0)
-                    forb_norm2,hr2=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=1)
-                    forb_norm3,hr3=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=2)
-                    forb_norm4,hr4=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=3)
-                    forb_norm5,hr5=EVAL_new(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=4)
+                    forb_norm,hr=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=-1)
+                    forb_norm1,hr1=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=0)
+                    forb_norm2,hr2=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=1)
+                    forb_norm3,hr3=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=2)
+                    forb_norm4,hr4=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=3)
+                    forb_norm5,hr5=EVAL_new_diff(G.copy(),G_Q.copy(),P,n_Q,Hung=False,initial_node=4)
 
                 print(forb_norm,hr,forb_norm1,hr1,forb_norm2,hr2,forb_norm3,hr3,forb_norm4,hr4)
                 file_A_results = open(f'{experimental_folder}/{GAname}vs{GBname}.txt', 'a')

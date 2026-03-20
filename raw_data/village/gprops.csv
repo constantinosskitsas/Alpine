@@ -1,0 +1,6 @@
+# prop_name, value
+name,ugandan_village (friendship-16)
+description,"Complete friendship and health advice social networks among households in 17 rural villages bordering Lake Victoria in Mayuge District, Uganda in 2013. Nodes are households and edges represent either a close friendship or a trusted health advisor connection, obtained via a name generator questionnaire."
+citation,"['G. F. Chami et al., \"Social network fragmentation and community health.\" Proc. Natl. Acad. Sci. USA 114(36), E7425–E7431 (2017), http://www.pnas.org/content/114/36/E7425.abstract']"
+url,https://www.repository.cam.ac.uk/handle/1810/270256?show=full
+tags,"['Social', 'Offline', 'Unweighted', 'Multilayer']"

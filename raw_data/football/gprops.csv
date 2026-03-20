@@ -1,0 +1,7 @@
+# prop_name, value
+name,football
+description,A network of American football games between Division IA colleges during regular season Fall 2000
+citation,"['M. Girvan and M. E. J. Newman, \"Community structure in social and biological networks.\" Proc. Natl. Acad. Sci. USA 99(12), 7821-7826 (2002). arxiv:cond-mat/0112110, http://www-personal.umich.edu/~mejn/netdata/']"
+url,http://www-personal.umich.edu/~mejn/netdata
+tags,"['Social', 'Sports', 'Unweighted']"
+directed,0.0

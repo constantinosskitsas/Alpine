@@ -7,7 +7,7 @@ from scipy.optimize import linear_sum_assignment
 def PermHungarian(M):
 
     row_ind, col_ind = scipy.optimize.linear_sum_assignment(M, maximize=True)
-    return _,row_ind,col_ind
+    return None, row_ind,col_ind
 
 def convertToPermHungarian(M, n1, n2):
 
@@ -76,6 +76,7 @@ def superfast(l2,k):
     return rows1, cols1
 
 def EVAL_new(A, B, P, k, Hung=True,initial_node=0, gt_G1=None, gt_G2=None):
+    hr=0
     if Hung:
         # --- Hungarian assignment mode ---
         row_ind, col_ind = linear_sum_assignment(P,maximize=True)
@@ -132,6 +133,57 @@ def EVAL_new(A, B, P, k, Hung=True,initial_node=0, gt_G1=None, gt_G2=None):
     fro_norm_B = torch.norm(B_sub, p='fro').item()
     fro_norm_diff = torch.norm(A_sub - B_sub, p='fro').item()
     return fro_norm_diff,hr,correct_pairs,local_1,local_2
+    return {
+        "pairs": selected_pairs,
+        "fro_norm_A": fro_norm_A,
+        "fro_norm_B": fro_norm_B,
+        "fro_norm_diff": fro_norm_diff
+    }
+
+def EVAL_new_diff(A, B, P, k, Hung=True,initial_node=0,return_n_components=False):
+    if Hung:
+        # --- Hungarian assignment mode ---
+        row_ind, col_ind = linear_sum_assignment(P,maximize=True)
+        selected_pairs = list(zip(row_ind, col_ind))
+        pair_costs = P[row_ind, col_ind]
+        sorted_pairs = sorted(zip(selected_pairs, pair_costs), key=lambda x: x[1], reverse=True)
+        top_n_pairs = sorted_pairs[:k]
+        top_n_row_indices = [pair[0][0] for pair in top_n_pairs]
+        top_n_col_indices = [pair[0][1] for pair in top_n_pairs]
+        # selected_pairs = [(pair, cost) for pair, cost in top_n_pairs]
+        selected_pairs = [(pair, cost) for pair, cost in top_n_pairs if cost > 0]
+        print("Number of selected pairs with positive cost:", len(selected_pairs), "out of", k)
+        hr=0
+    else:
+        # --- Connectivity-aware greedy selection ---
+        selected_pairs, top_n_row_indices, top_n_col_indices,hr = select_connected_pairs(A, B, P, k,initial_node)
+
+    # Build tensors
+    A_tensor = torch.tensor(nx.to_numpy_array(A), dtype=torch.float64)
+    B_tensor = torch.tensor(nx.to_numpy_array(B), dtype=torch.float64)
+    A_sub = A_tensor[top_n_col_indices, :][:, top_n_col_indices]
+    B_sub = B_tensor[top_n_row_indices, :][:, top_n_row_indices]
+
+    # Build subgraph networks
+    G_A_sub = nx.from_numpy_array(A_sub.numpy())
+    G_B_sub = nx.from_numpy_array(B_sub.numpy())
+
+    # Connectivity diagnostics
+    num_components_A = nx.number_connected_components(G_A_sub)
+    num_components_B = nx.number_connected_components(G_B_sub)
+    is_connected_A = (num_components_A == 1)
+    is_connected_B = (num_components_B == 1)
+    print("A_sub: connected =", is_connected_A, ", components =", num_components_A)
+    print("B_sub: connected =", is_connected_B, ", components =", num_components_B)
+
+    # Frobenius norms
+    fro_norm_A = torch.norm(A_sub, p='fro').item()
+    fro_norm_B = torch.norm(B_sub, p='fro').item()
+    fro_norm_diff = torch.norm(A_sub - B_sub, p='fro').item()
+    if return_n_components:
+        return fro_norm_diff,hr,num_components_A,num_components_B
+    else:
+        return fro_norm_diff,hr
     return {
         "pairs": selected_pairs,
         "fro_norm_A": fro_norm_A,

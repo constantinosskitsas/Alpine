@@ -17,6 +17,7 @@ from save_util import save_pairs_to_txt,save_high_similarity_pairs,save_list_to_
 import copy
 from pred import AlpineTopk,AlpineTorchTopk,AlpinePlusTopk,Martian
 from hung_utils import EVAL_new
+from subgraph import create_sub_graph_ground_truth
 
 
 def printR(name,forb_norm,accuracy,spec_norm,time_diff,isomorphic=False,local=False):
@@ -45,144 +46,6 @@ def readGraph(filename, N):
         count += 1
     return g
 
-def create_sub_graph_ground_truth(G1: nx.Graph, G2: nx.Graph, n_Q, shuffle='random', method='random walk', p=0.0, p_more=0.8, p_remove_g1=0.1, p_remove_g2=0.1, fname=''):
-    from copy import deepcopy
-    G = deepcopy(G1)
-    G_Q = deepcopy(G2)
-    node_G = []
-    node_G_Q = []
-    
-    if os.path.exists(fname):
-        with open(fname, 'rb') as f:
-            data = pickle.load(f)
-            node_G = data['node_G']
-            node_G_Q = data['node_G_Q']
-        assert len(node_G) == n_Q
-        assert len(node_G_Q) == n_Q
-        assert nx.is_connected(nx.subgraph(G, node_G))
-        assert nx.is_connected(nx.subgraph(G_Q, node_G_Q))
-    else:
-    
-        while len(node_G) < n_Q:
-            node_G = connected_subgraph_of_size_with_original_ids(G, n_Q, method, p)
-        while len(node_G_Q) < n_Q: 
-            node_G_Q = connected_subgraph_of_size_with_original_ids(G_Q, n_Q, method, p)
-        assert len(node_G) == n_Q
-        assert len(node_G_Q) == n_Q
-        assert nx.is_connected(nx.subgraph(G, node_G))
-        assert nx.is_connected(nx.subgraph(G_Q, node_G_Q))
-        with open(fname, 'wb') as f:
-            data = {'node_G': node_G, 'node_G_Q': node_G_Q}
-            pickle.dump(data, f)
-    
-    G_new_edges = []
-    G_Q_new_edges = []
-    for u in range(n_Q):
-        for v in range(n_Q):
-            if G.has_edge(node_G[u], node_G[v]) and (not G_Q.has_edge(node_G_Q[u], node_G_Q[v])):
-                G_Q.add_edge(node_G_Q[u], node_G_Q[v])
-                G_Q_new_edges.append((node_G_Q[u], node_G_Q[v]))
-            if (not G.has_edge(node_G[u], node_G[v])) and G_Q.has_edge(node_G_Q[u], node_G_Q[v]):
-                G.add_edge(node_G[u], node_G[v])
-                G_new_edges.append((node_G[u], node_G[v]))
-
-    if p_more > 0:
-        for u in range(n_Q):
-            for v in range(n_Q):
-                if (not G.has_edge(node_G[u], node_G[v])):
-                    assert (not G_Q.has_edge(node_G_Q[u], node_G_Q[v]))
-                    rand = np.random.random()
-                    if rand < p_more:
-                        G_Q.add_edge(node_G_Q[u], node_G_Q[v])
-                        G.add_edge(node_G[u], node_G[v])
-        print('p_more')
-     
-    elif p_more < 0:
-        remove_cnt = 0
-        p_more_ = abs(p_more)
-        assert p_more_ > 0
-        G_temp = deepcopy(G)
-        G_temp_Q = deepcopy(G_Q)
-        for u in range(n_Q):
-            for v in range(n_Q):
-                if G_temp.has_edge(node_G[u], node_G[v]):
-                    assert G_temp_Q.has_edge(node_G_Q[u], node_G_Q[v])
-                    rand = np.random.random()
-                    if rand < p_more_:
-                        G_temp.remove_edge(node_G[u], node_G[v])
-                        G_temp_Q.remove_edge(node_G_Q[u], node_G_Q[v])
-                        G_sub = nx.subgraph(G_temp, node_G)
-                        remove_cnt += 1
-                        if nx.number_connected_components(G_temp) > 1 or nx.number_connected_components(G_temp_Q) > 1 or nx.number_connected_components(G_sub) > 1:
-                            G_temp.add_edge(node_G[u], node_G[v])
-                            G_temp_Q.add_edge(node_G_Q[u], node_G_Q[v])
-                            remove_cnt -= 1
-    
-        print('removed subgraph edges: ', remove_cnt)
-    
-    if p_remove_g1 > 0:
-        G_temp = deepcopy(G)
-        
-        for u, v in G.edges():
-            if (u not in node_G) or (v not in node_G):
-                rand = np.random.random()
-                if rand < p_remove_g1:
-                    G_temp.remove_edge(u, v)
-                    if nx.number_connected_components(G_temp) > 1: #restore the edge if (u,v) is a bridge
-                        G_temp.add_edge(u, v)
-        G = G_temp
-        print('p_remove')
-    
-    if p_remove_g2 > 0:
-        G_temp = deepcopy(G_Q)
-        # G_sub = nx.subgraph(G, node_G)
-        for u, v in G_Q.edges():
-            if (u not in node_G_Q) or (v not in node_G_Q):
-                rand = np.random.random()
-                if rand < p_remove_g2:
-                    G_temp.remove_edge(u, v)
-                    if nx.number_connected_components(G_temp) > 1: #restore the edge if (u,v) is a bridge
-                        G_temp.add_edge(u, v)
-        G_Q = G_temp   
-        print('p_remove_2')
-    
-    adj_sub_G = nx.adjacency_matrix(G, nodelist=node_G)
-    total = np.sum(adj_sub_G)
-    maxdegree = np.max(np.sum(adj_sub_G, axis=0))
-    mindegree = np.min(np.sum(adj_sub_G, axis=0))
-    adj_sub_G_Q = nx.adjacency_matrix(G_Q, nodelist=node_G_Q)
-    assert (adj_sub_G.toarray() == adj_sub_G_Q.toarray()).all(), 'not correct subgraph'
-    print(f'new edges G1: {len(G_new_edges)}, new edges G2: {len(G_Q_new_edges)}')
-    
-    G_sub = nx.subgraph(G, node_G)
-    G_Q_sub = nx.subgraph(G_Q, node_G_Q)
-
-    num_components_A = nx.number_connected_components(G_sub)
-    num_components_B = nx.number_connected_components(G_Q_sub)
-    assert num_components_A == 1, 'sub G is not connected'
-    assert num_components_B == 1, 'sub G_Q is not connected'
-    
-    num_components_A = nx.number_connected_components(G)
-    num_components_B = nx.number_connected_components(G_Q)
-    assert num_components_A == 1, 'G is not connected'
-    assert num_components_B == 1, 'G_Q is not connected'
-    
-    info = {
-        'G1_new_edges': G_new_edges,
-        'G2_new_edges': G_Q_new_edges,
-        'n_add_G1': len(G_new_edges),
-        'n_add_G2': len(G_Q_new_edges),
-        'K': int(n_Q),
-        'K_edges': int(total),
-        'K_max_degree': int(maxdegree),
-        'K_min_degree': int(mindegree),
-        'ordered_selected_nodes_G1': node_G,
-        'ordered_selected_nodes_G2': node_G_Q, 
-    }
-
-    return G, G_Q, info
-
-    #from larger to smaller
 graph_name_and_size = [
     # ("celegans", 453),
     # ("village", 372),
@@ -303,18 +166,18 @@ for i in range(len(graph_name_and_size) - 1):
                     assert torch.allclose(P_init, P_init_temp)
                 if(tun==1):
                     print("Alpine")
-                    P,P1, list_of_nodes = AlpineTopk(new_G.copy(),new_G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes = AlpineTopk(new_G.copy(),new_G_Q.copy(),n_Q,t1=10)
                 elif(tun==2):
                     start1 = time.time()
-                    P,P1, list_of_nodes  = P,P1, list_of_nodes = AlpineTorchTopk(new_G.copy(),new_G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = P,P1, list_of_nodes = AlpineTorchTopk(new_G.copy(),new_G_Q.copy(),n_Q,t1=10)
                     end1 = time.time()
                     AlpTime=end1-start1
                 elif(tun==3):
                     print("k-Size")
-                    P,P1, list_of_nodes  = AlpinePlusTopk(new_G.copy(),new_G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = AlpinePlusTopk(new_G.copy(),new_G_Q.copy(),n_Q,t1=10)
                 elif(tun==4):
                     print("k-Penalty")
-                    P,P1, list_of_nodes  = Martian(new_G.copy(),new_G_Q.copy(),n_Q)
+                    P,P1, list_of_nodes  = Martian(new_G.copy(),new_G_Q.copy(),n_Q,t1=10)
                 else:
                     print("NO given algorithm ID")
                     exit()   

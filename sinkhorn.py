@@ -7,7 +7,7 @@ Bregman projections for regularized OT (Sinkhorn distance).
 import torch
 import time
 import warnings
-from memory_profiler import profile
+#from memory_profiler import profile
 
 #import numpy as np
 M_EPS = 1e-16
