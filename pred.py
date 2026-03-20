@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 import scipy
 from sklearn.metrics.pairwise import euclidean_distances
-from sinkhorn import greenkhorn,sinkhorn,sinkhorn_epsilon_scaling,sinkhorn_knopp,sinkhorn_stabilized
+from sinkhorn import sinkhorn
 from numpy import linalg as LA
 import networkx as nx
 import time
@@ -16,136 +16,42 @@ import warnings
 import ot
 from memory_profiler import profile
 from hung_utils import convertToPermHungarian2new,convertToPermHungarian
+from feature_util import feature_extraction,feature_extraction1
 warnings.filterwarnings('ignore')
 os.environ["MKL_NUM_THREADS"] = "40"
 torch.set_num_threads(40)
 
+def projection(P, lr, v1, v2, m, n, optimizer):
+    if optimizer == 'sinkhorn':
+        try:
+            P_Sk = ot.sinkhorn(v1, v2, P.grad.data, 1.0, numItermax = 1500, stopThr = 1e-5, method='sinkhorn_log')
+        except:
+            P_Sk = ot.sinkhorn(v1, v2, P.grad.data, 1.0, numItermax = 1500, stopThr = 1e-5, method='sinkhorn_log')
+    else:
+        P_Sk = ot.emd(v1, v2, P.grad.data, numItermax = 100000, numThreads=30)
+    P.grad.zero_()
+    P.data = (1-lr)*P.data + lr*P_Sk
+    return P
 
-def feature_extraction1(G,simple = True):
-    """Node feature extraction.
+#used-all
+def projectionN(P, lr, v1, v2,m,n,optimizer):
+    if optimizer == 'sinkhorn':
+        try:
+            P_Sk = ot.sinkhorn(v1, v2, P.grad.data, 1.0, numItermax = 1500, stopThr = 1e-5)
+        except:
+            P_Sk = ot.sinkhorn(v1, v2, P.grad.data, 1.0, numItermax = 1500, stopThr = 1e-5, method='sinkhorn_log')
+    else:
+        P_Sk = ot.emd(v1, v2, P.grad.data, numItermax = 100000, numThreads=4)
+    P.grad.zero_()
+    P.data[:m,:n] = (1-lr)*P.data[:m,:n] + lr*P_Sk[:m,:n]
+    return P
 
-    Parameters
-    ----------
-
-    G (nx.Graph): a networkx graph.
-
-    Returns
-    -------
-
-    node_features (float): the Nx7 matrix of node features."""
-    # necessary data structures
-    node_features = np.zeros(shape=(G.number_of_nodes(), 2))
-    node_list = sorted(G.nodes())
-    node_degree_dict = dict(G.degree())
-
-    # node degrees
-    degs = [node_degree_dict[n] for n in node_list]
-    node_features[:, 0] = degs
-    node_features = np.nan_to_num(node_features)
-    egonets = {n: nx.ego_graph(G, n) for n in node_list}
-    neighbor_degs = [
-        np.mean([node_degree_dict[m] for m in egonets[n].nodes if m != n])
-        if node_degree_dict[n] > 0
-        else 0
-        for n in node_list
-    ]
-    node_features[:, 1] = neighbor_degs
-    return np.nan_to_num(node_features)
-
-def feature_extraction(G,simple = True):
-    """Node feature extraction.
-
-    Parameters
-    ----------
-
-    G (nx.Graph): a networkx graph.
-
-    Returns
-    -------
-
-    node_features (float): the Nx7 matrix of node features."""
-    # necessary data structures
-    node_features = np.zeros(shape=(G.number_of_nodes(), 7))
-    node_list = sorted(G.nodes())
-    node_degree_dict = dict(G.degree())
-    node_clustering_dict = dict(nx.clustering(G))
-    egonets = {n: nx.ego_graph(G, n) for n in node_list}
-
-    # node degrees
-    degs = [node_degree_dict[n] for n in node_list]
-
-    # clustering coefficient
-    clusts = [node_clustering_dict[n] for n in node_list]
-
-    # average degree of neighborhood
-    neighbor_degs = [
-        np.mean([node_degree_dict[m] for m in egonets[n].nodes if m != n])
-        if node_degree_dict[n] > 0
-        else 0
-        for n in node_list
-    ]
-
-    # average clustering coefficient of neighborhood
-    neighbor_clusts = [
-        np.mean([node_clustering_dict[m] for m in egonets[n].nodes if m != n])
-        if node_degree_dict[n] > 0
-        else 0
-        for n in node_list
-    ]
-
-    # number of edges in the neighborhood
-
-    if simple==False:
-        neighbor_edges = [
-            egonets[n].number_of_edges() if node_degree_dict[n] > 0 else 0
-            for n in node_list
-        ]
-
-    # number of outgoing edges from the neighborhood
-    # the sum of neighborhood degrees = 2*(internal edges) + external edges
-    # node_features[:,5] = node_features[:,0] * node_features[:,2] - 2*node_features[:,4]
-    if simple==False:
-        neighbor_outgoing_edges = [
-            len(
-                [
-                    edge
-                    for edge in set.union(*[set(G.edges(j)) for j in egonets[i].nodes])
-                    if not egonets[i].has_edge(*edge)
-                ]
-            )
-            for i in node_list
-        ]   
-
-    # number of neighbors of neighbors (not in neighborhood)
-    if simple==False:
-        neighbors_of_neighbors = [
-            len(
-                set([p for m in G.neighbors(n) for p in G.neighbors(m)])
-                - set(G.neighbors(n))
-                - set([n])
-            )
-            if node_degree_dict[n] > 0
-            else 0
-            for n in node_list
-        ]
-
-    # assembling the features
-    node_features[:, 0] = degs
-    node_features[:, 1] = clusts
-    node_features[:, 2] = neighbor_degs
-    node_features[:, 3] = neighbor_clusts
-    if (simple==False):
-        node_features[:, 4] = neighbor_edges #create if statement
-        node_features[:, 5] = neighbor_outgoing_edges#
-        node_features[:, 6] = neighbors_of_neighbors#
-
-    node_features = np.nan_to_num(node_features)
-    return np.nan_to_num(node_features)
-
-def eucledian_dist(F1, F2, n):
-    #D = euclidean_distances(F1, F2)
-    D = euclidean_distances(F1, F2)
-    return D
+def enlargeMatrices(C,A1,size):
+    new_node = max(C.nodes) + 1
+    C.add_node(new_node)
+    new_node = max(A1.nodes) + 1
+    A1.add_node(new_node)
+    return C,A1
 
 def convex_init(A, B, D, mu, niter, n1):
     n = len(A)
@@ -183,7 +89,7 @@ def align_new(Gq, Gt, mu=1, niter=10,weight=1):
     F2 = feature_extraction1(Gt)
     D = torch.zeros((n,n),dtype = torch.float64)
     D = torch.zeros((n,n),dtype = torch.float64)
-    D = eucledian_dist(F1,F2,n)
+    D = euclidean_distances(F1, F2)
     P, forbnorm,row_ind,col_ind = convex_init(A, B, D, mu, niter, n1)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
     list_of_nodes = []
@@ -236,7 +142,7 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
     else:
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
+    D = euclidean_distances(F1, F2)    
     D = torch.tensor(D, dtype = torch.float64)
     P, forbnorm,row_ind,col_ind = Alpine_pp_new(A[:n1,:n1], B, mu*D, niter,A)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
@@ -281,7 +187,7 @@ def Fugal(Gq, Gt, mu=1, niter=10):
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
     F1 = feature_extraction(Gq)
     F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
+    D = euclidean_distances(F1, F2)
     P, forbnorm,row_ind,col_ind = Fugal_pp(A, B, mu,D, niter,n1)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
     list_of_nodes = []
@@ -307,7 +213,6 @@ def Alpine_pp_labels(A,B,feat, K, niter,A1,weight=1):
     A0 = torch.mean(np.abs(feat1))
     dd=1
     degrees = A.sum(dim=1)
-# Average degree = mean of all degrees
     avg_degree = degrees.mean()
     degrees1=B.sum(dim=1)
     avg_degree1 = degrees1.mean()
@@ -340,7 +245,7 @@ def AlpineL(Gq, Gt,f1=None,f2=None, mu=1, niter=10, weight=2):
     Gq.add_edge(n1,n1)
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = eucledian_dist(f1,f2,n)
+    feat = euclidean_distances(F1, F2)
     zeros_row = np.zeros((1, feat.shape[1]))
     feat=np.vstack([feat, zeros_row])
     if (weight==2):
@@ -349,7 +254,7 @@ def AlpineL(Gq, Gt,f1=None,f2=None, mu=1, niter=10, weight=2):
     else:
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
+    D = euclidean_distances(F1, F2)
     D = torch.tensor(D, dtype = torch.float64)
     P, forbnorm,row_ind,col_ind = Alpine_pp_labels(A[:n1,:n1], B,feat, mu*D, niter,A)
     _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
@@ -428,6 +333,7 @@ def Alpine_pp_new_supervised(A, B, feat, K, gtA, gtB, niter, A1, weight=1):
     forbnorm = LA.norm(A - I_p[:, :m].T @ P2 @ B @ P2.T @ I_p[:, :m], 'fro') ** 2
 
     return Pi, forbnorm, row_ind, col_ind
+
 def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10, weight=2):
     n1 = Gq.number_of_nodes()
     n2 = Gt.number_of_nodes()
@@ -441,7 +347,7 @@ def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10
     Gq.add_edge(n1,n1)
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = eucledian_dist(f1,f2,n)
+    feat = euclidean_distances(F1, F2)
     zeros_row = np.zeros((1, feat.shape[1]))
     feat=np.vstack([feat, zeros_row])
         
@@ -451,7 +357,7 @@ def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10
     else:
         F1 = feature_extraction(Gq)
         F2 = feature_extraction(Gt)
-    D = eucledian_dist(F1,F2,n)
+    D = euclidean_distances(F1, F2)
     D = torch.tensor(D, dtype = torch.float64)
     
     P, forbnorm,row_ind,col_ind = Alpine_pp_new_supervised(A[:n1,:n1], B,feat,mu*D,gtGq,gtGt, niter,A)
@@ -459,3 +365,189 @@ def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10
     list_of_nodes = []
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm  
+
+def AlpineTopk(A,B,k,t1,P1=None,beta=1.0):
+    size=np.shape(A)[0]-np.shape(B)[0]
+    C = B.copy()
+    A1=A.copy()
+    C,A1=enlargeMatrices(C,A1,size)
+    A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
+    B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
+    
+    F1 = feature_extraction1(A1,True)
+    F2 = feature_extraction1(C,True)
+    D = euclidean_distances(F2, F1)
+    D = D[:np.shape(B)[0]+1,:np.shape(A)[0]]
+    D=torch.tensor((D), dtype = torch.float64)
+    P=Alpine_pp_new(B,A,D, 10, 10,1)
+    P = P[:-1]
+    P=P.detach().numpy()
+    P3=np.multiply(P,1-P[-1].reshape(1,len(A)))
+    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    return P,P3,col_ind
+
+def AlpineTorchTopk(A,B,k,t1,P1=None,beta=1.0):
+    size=np.shape(A)[0]-np.shape(B)[0]
+    C = B.copy()
+    A1=A.copy()
+    C,A1=enlargeMatrices(C,A1,size)
+    A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
+    B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
+    F1 = feature_extraction1(A1,True)
+    F2 = feature_extraction1(C,True)
+    D = euclidean_distances(F2, F1)
+    D = D[:np.shape(B)[0]+1,:np.shape(A)[0]]
+    D=torch.tensor((D), dtype = torch.float64)
+    P=Alpine_pp_torch(B,A,D, 10, 10,1)
+    P=P[:-1]
+    P=P.detach().numpy()
+    P3=P
+    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    return P,P3,col_ind
+
+def AlpinePlusTopk(A,B,k,t1,P1=None,beta=1.0):
+    size=np.shape(A)[0]-np.shape(B)[0]
+    C = B.copy()
+    A1=A.copy()
+    C,A1=enlargeMatrices(C,A1,size)
+    A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
+    B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
+    
+    F1 = feature_extraction1(A1,True)
+    F2 = feature_extraction1(C,True)
+    D = euclidean_distances(F2, F1)
+    D = D[:np.shape(B)[0]+1,:np.shape(A)[0]+1]
+    if(D[-1,-1]!=0):
+        D[-1,-1]=0
+    D=torch.tensor((D), dtype = torch.float64)
+    P=partial_alignment(B,A,k,D,P1=P1)#        
+    P1=P[:-1,:-1]
+    P=P[:-1,:-1]
+    P3=P1
+    P=P.detach().numpy()
+    P3=P3.detach().numpy()
+    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    return P,P3,col_ind
+
+def Martian(A,B,k,t1,P1=None,beta=1.0):
+    size=np.shape(A)[0]-np.shape(B)[0]
+    C = B.copy()
+    A1=A.copy()
+    C,A1=enlargeMatrices(C,A1,size)
+    A=torch.tensor((nx.to_numpy_array(A)), dtype = torch.float64)
+    B=torch.tensor((nx.to_numpy_array(B)), dtype = torch.float64)
+    
+    F1 = feature_extraction1(A1,True)
+    F2 = feature_extraction1(C,True)
+    D = euclidean_distances(F2, F1)
+    D = D[:np.shape(B)[0]+1,:np.shape(A)[0]+1]        
+    D[-1,-1]=0
+    D=torch.tensor((D), dtype = torch.float64)
+    P=partial_alignmentPenalty(B,A,k,D,P1=P1,beta=beta)       
+    P=P[:-1,:-1]
+    P3 = P
+    P=P.detach().numpy()
+    P3=P3.detach().numpy()
+    row_ind,col_ind = convertToPermHungarian(P, 1, 1)
+    return P,P3,col_ind
+
+def Alpine_pp_torch(A,B, K, niter,A1,weight=1, optimizer='sinkhorn'):
+    m = len(A)
+    n = len(B)
+    I_p = torch.zeros((m,m+1),dtype = torch.float64)
+    for i in range(m):
+        I_p[i,i] = 1
+    P=torch.ones((m+1,n),dtype = torch.float64)
+    P[:-1,:] *= 1/n
+    P[-1,:] *= (n-m)/n
+    P.requires_grad_(True)
+    reg = 1.0
+    ones_ = torch.ones(n, dtype = torch.float64)
+    ones_augm_ = torch.ones(m+1, dtype = torch.float64)
+    ones_augm_[-1] = n-m
+    for i in range(10):
+        for it in range(1, 11):                                                                    
+            loss =  torch.norm(A-I_p @ P @ B @ P.T @ I_p.T)**2-i*torch.trace(P[:m,:n].T@P[:m,:n])+torch.trace(P.T @ K[:m+1,:n])
+            loss.backward()        
+            lr = (2/float(2+it))       
+            P.data = projectionN(P, lr, ones_augm_, ones_,m,n,optimizer) 
+            P.requires_grad_(True)
+    return P.data#
+
+def partial_alignment(A, B, k, D,P1=None, optimizer='sinkhorn'):
+
+    n = len(A)
+    m = len(B)
+    print('n, m', n, m)
+    
+    if P1 is None:
+        P = torch.ones((n+1, m+1)).double()   
+    #desired sum divided by number of elements
+        P[:n, :m] *= k/(n*m)
+        P[-1, :m] *= (m-k)/m
+        P[:n, -1] *= (n-k)/n
+        P[n, m] = 0
+        P.data=P
+    else:
+        P = P1
+    P.requires_grad_(True)
+    v1 = torch.ones((n+1))
+    v2 = torch.ones((m+1))
+    v1[-1] = m-k
+    v2[-1] = n-k
+
+    for alpha in range(10):
+        for t in range(1, 11, 1): 
+            loss = torch.norm(torch.multiply(A, (1-P[:n, -1]).reshape(-1, 1)@((1-P[:n, -1]).reshape(-1, 1)).T) - P[:n, :m]@B@(P[:n, :m]).T)**2 - alpha*torch.trace(P[:n,:m].T@P[:n,:m])+torch.trace(P.T@D)
+            loss.backward()
+            lr = (2/float(2+t))       
+            P.data = projection(P, lr, v1, v2, n, m, optimizer)   
+            P.requires_grad_(True)
+    return(P.data)    
+
+def partial_alignmentPenalty(A, B, k, D, P1=None, optimizer='sinkhorn', beta=1.0):
+    """
+    Partial alignment with connectivity penalty using pairwise distances.
+    A, B : adjacency matrices (torch.Tensor, n×n and m×m)
+    k    : number of nodes to match
+    D    : cost matrix (torch.Tensor, (n+1)×(m+1))
+    """
+
+    n = len(A)
+    m = len(B)
+    if P1 is None:
+        P = torch.ones((n+1, m+1), dtype=torch.float64)
+        P[:n, :m] *= k / (n * m)
+        P[-1, :m] *= (m - k) / m
+        P[:n, -1] *= (n - k) / n
+        P[n, m] = 0.0
+        P.requires_grad_(True)
+    else:
+        P = P1
+        P.requires_grad_(True)
+
+    # --- marginals for Sinkhorn projection ---
+    v1 = torch.ones(n+1)
+    v2 = torch.ones(m+1)
+    v1[-1] = m - k
+    v2[-1] = n - k
+    beta=1
+    # --- optimization loop ---
+    for alpha in range(10):
+        for t in range(1, 11):
+            P_real = P[:n, :m]
+            loss_align = torch.norm(A - P[:n, :m]@B@(P[:n, :m]).T)**2 - torch.sum(torch.multiply(A, torch.ones((n,1)).double()@((P[:n, -1].reshape(1, n))) + (torch.ones((n,1)).double()@((P[:n, -1].reshape(1, n)))).T - P[:n, -1].reshape(-1, 1)@(P[:n, -1].reshape(1, n))))
+
+            y = 1 - P[:n, -1]     # shape (n,)
+            z = 1 - P[-1, :m]     # shape (m,)
+            y1=y.reshape(-1,1)
+            z1=z.reshape(-1,1)
+            loss_conn =  beta * ( y.T @ A @ y + z.T @ B @ z )
+            loss = 2 * loss_align - loss_conn + torch.trace(P.T @ D)-alpha*torch.trace(P[:n,:m].T@P[:n,:m])
+            loss.backward()            
+            lr = 2.0 / float(2 + t)
+            with torch.no_grad():
+                P.data = projection(P, lr, v1, v2, n, m, optimizer)
+            P.requires_grad_(True)
+    return P.data
+

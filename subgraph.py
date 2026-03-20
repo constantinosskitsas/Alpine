@@ -3,7 +3,7 @@ import networkx as nx
 import random
 
 def induced_subgraph_with_ids(adj_matrix, num_nodes):
-    G = nx.from_numpy_matrix(adj_matrix)
+    G = nx.from_numpy_array(adj_matrix)(adj_matrix)
     
     # Randomly select N nodes
     selected_nodes = random.sample(G.nodes(), num_nodes)
@@ -17,7 +17,7 @@ def induced_subgraph_with_ids(adj_matrix, num_nodes):
     return subgraph_adj_matrix, selected_nodes, list(subgraph.nodes())
 
 def connected_subgraph_of_size_with_ids_random_walk(adj_matrix, size, walk_length=100):
-    G = nx.from_numpy_matrix(adj_matrix)
+    G = nx.from_numpy_array(adj_matrix)(adj_matrix)
     
     # List of nodes in the original graph
     nodes = list(G.nodes())
@@ -53,7 +53,7 @@ def connected_subgraph_of_size_with_ids_random_walk(adj_matrix, size, walk_lengt
     return subgraph_adj_matrix, subgraph_node_ids, node_id_mapping
 
 def connected_subgraph_of_size_with_ids(adj_matrix, size):
-    G = nx.from_numpy_matrix(adj_matrix)
+    G = nx.from_numpy_array(adj_matrix)(adj_matrix)
     
     # List of nodes in the original graph
     nodes = list(G.nodes())

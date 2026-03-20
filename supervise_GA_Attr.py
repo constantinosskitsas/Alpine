@@ -50,6 +50,7 @@ n_G2 = [1118,5712,9872,1043,1767,2708,5120,1000] #s
 n_G=   [3906,6010,9916,1043,1767,2708,5313,1003] #t
 gt_size=[1118,5174,6325,1043,1767,2708,1609,1000]
 attrN=[True,True,True,False,True,True,False,False]
+ratioN=[0.05,0.10,0.15,0.20]
 ratio=0.05
 
 Perm=None
@@ -58,7 +59,7 @@ for k in range(0,len(foldernames)):
         print(G)
         DGS=G.number_of_nodes()
         DGES = G.number_of_edges()       
-        for _ in nL: 
+        for ratio in ratioN: 
         #for noiseL in nL: 
             for ptun in range(len(tun)): 
                 folder = f'./{folderall}/{foldernames[k]}'
@@ -76,10 +77,7 @@ for k in range(0,len(foldernames)):
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
                 F2=F2
-                F1=F1
-                
-
-# Split into two arrays
+                F1=F1                
                 if (foldernames[k]=="douban"):
                     csv2 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr1.csv", header=None).iloc[:, 1:].to_numpy()
                     csv1 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr2.csv", header=None).iloc[:, 1:].to_numpy()
@@ -105,7 +103,6 @@ for k in range(0,len(foldernames)):
                     os.makedirs(f'{folder1_}', exist_ok=True)
                     file_subgraph = f'{folder_}/subgraph.txt'
                     file_nodes = f'{folder_}/nodes.txt'
-                    #Q_real = read_list(file_nodes)
                     G_Q = read_real_graph(n = n_G2[k], name_ = f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_edge.txt')
                     if (foldernames[k]=="phone"):                      
                         Perm=  load_permutation(iter)
