@@ -153,7 +153,7 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
 def Fugal_pp(A, B, D, mu, niter, n1):
     n = len(A)
     m = len(B)
-    P = torch.rand((n,n), dtype = torch.float64)
+    P = torch.ones((n,n), dtype = torch.float64)
     P=P/n
     ones = torch.ones(n, dtype = torch.float64)
     mat_ones = torch.ones((n, n), dtype = torch.float64)
