@@ -122,6 +122,36 @@ def Alpine_pp_new(A,B, K, niter,A1,weight=1):
     forbnorm = LA.norm(A - I_p[:,:m].T@P2@B@P2.T@I_p[:,:m], 'fro')**2
     return Pi, forbnorm,row_ind,col_ind
 
+def Alpine_pp_new1(A,B, K, niter,A1,weight=1):
+    m = len(A)
+    n = len(B)
+    I_p = torch.zeros((m,m+1),dtype = torch.float64)
+    for i in range(m):
+        I_p[i,i] = 1
+    Pi=torch.ones((m+1,n),dtype = torch.float64)
+    Pi[:-1,:] *= 1/n
+    Pi[-1,:] *= (n-m)/n
+    reg = 1.0
+    mat_ones = torch.ones((m+1, n), dtype = torch.float64)
+    ones_ = torch.ones(n, dtype = torch.float64)
+    ones_augm_ = torch.ones(m+1, dtype = torch.float64)
+    ones_augm_[-1] = n-m
+    A0=torch.mean(np.abs(K))
+    for i in range(10):
+        for it in range(1, 11):
+            QAP=(-4*I_p.T@(A-I_p@Pi@B@Pi.T@I_p.T)@I_p@Pi@B)
+            ridge=i*(mat_ones - 2*Pi)
+            deriv=K
+            S0 = QAP.abs().mean().item()  # magnitude of structural gradient
+            gamma_a = S0 / (A0 + 1e-4)
+            deriv = QAP +ridge+ gamma_a * (K)
+            q=sinkhorn(ones_augm_, ones_, deriv, reg,method="sinkhorn",maxIter = 500, stopThr = 1e-5) 
+            alpha = (2 / float(2 + it) )    
+            Pi[:m,:n] = Pi[:m,:n] + alpha * (q[:m,:n] - Pi[:m,:n])
+    Pi=Pi[:-1]
+    P2,row_ind,col_ind = convertToPermHungarian(Pi, n, m)
+    forbnorm = LA.norm(A - I_p[:,:m].T@P2@B@P2.T@I_p[:,:m], 'fro')**2
+    return Pi, forbnorm,row_ind,col_ind
 def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
     n1 = Gq.number_of_nodes()
     n2 = Gt.number_of_nodes()
@@ -150,6 +180,33 @@ def Alpine(Gq, Gt, mu=1, niter=10, weight=2):
     for el in ans: list_of_nodes.append(el[1])
     return ans, list_of_nodes, forbnorm    
 
+def Alpine_new(Gq, Gt, mu=1, niter=10, weight=2):
+    n1 = Gq.number_of_nodes()
+    n2 = Gt.number_of_nodes()
+    n = max(n1, n2)
+    for node in nx.isolates(Gq):
+        Gq.add_edge(node, node)
+    for node in nx.isolates(Gt):
+        Gt.add_edge(node, node)
+        
+    Gq.add_node(n1)
+    Gq.add_edge(n1,n1)
+    A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
+    B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
+    #weight=1
+    if (weight==2):
+        F1 = feature_extraction1(Gq)
+        F2 = feature_extraction1(Gt) 
+    else:
+        F1 = feature_extraction(Gq)
+        F2 = feature_extraction(Gt)
+    D = euclidean_distances(F1, F2)    
+    D = torch.tensor(D, dtype = torch.float64)
+    P, forbnorm,row_ind,col_ind = Alpine_pp_new(A[:n1,:n1], B, mu*D, niter,A)
+    _, ans=convertToPermHungarian2new(row_ind,col_ind, n1, n2)
+    list_of_nodes = []
+    for el in ans: list_of_nodes.append(el[1])
+    return ans, list_of_nodes, forbnorm 
 def Fugal_pp(A, B, D, mu, niter, n1):
     n = len(A)
     m = len(B)
@@ -245,7 +302,7 @@ def AlpineL(Gq, Gt,f1=None,f2=None, mu=1, niter=10, weight=2):
     Gq.add_edge(n1,n1)
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = euclidean_distances(F1, F2)
+    feat = euclidean_distances(f1, f2)
     zeros_row = np.zeros((1, feat.shape[1]))
     feat=np.vstack([feat, zeros_row])
     if (weight==2):
@@ -347,9 +404,10 @@ def Alpine_supervised(Gq, Gt,f1=None,f2=None,gtGq=None,gtGt=None, mu=1, niter=10
     Gq.add_edge(n1,n1)
     A = torch.tensor(nx.to_numpy_array(Gq), dtype = torch.float64)
     B = torch.tensor(nx.to_numpy_array(Gt), dtype = torch.float64)
-    feat = euclidean_distances(F1, F2)
+    feat = euclidean_distances(f1, f2)
     zeros_row = np.zeros((1, feat.shape[1]))
     feat=np.vstack([feat, zeros_row])
+        
         
     if (weight==2):
         F1 = feature_extraction1(Gq)

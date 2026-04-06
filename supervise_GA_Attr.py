@@ -75,29 +75,15 @@ for k in range(0,len(foldernames)):
                     F2 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_t_feat.txt', dtype=float)  # shape: (n1, k)
                     F1 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_feat.txt', dtype=float)  # shape: (n2, k)
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
-                file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
-                F2=F2
-                F1=F1                
-                if (foldernames[k]=="douban"):
-                    csv2 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr1.csv", header=None).iloc[:, 1:].to_numpy()
-                    csv1 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr2.csv", header=None).iloc[:, 1:].to_numpy()
-                if (foldernames[k]=="acm_dblp"):
-                    data = np.load(f'JOENA/datasets/ACM-DBLP_0.2.npz')
-                    csv2=data['x2']
-                    csv1=data['x1']
+                file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')             
                 for iter in range(iters):
                     
-                    if (foldernames[k]=="douban" or foldernames[k]=="acm_dblp"):
-                        F2=csv2
-                        F1=csv1
                     #you have to do that because the features have ID making them 
                     #giving ground truth information
                     if (foldernames[k]=="fb_tw"):
                         F2=F2*0
                         F1=F1*0
                     data_GT = np.loadtxt(f"./Data/data/{foldernames[k]}/{foldernames[k]}_ground_True_{ratio}_{iter}.txt", dtype=int)
-                    #F2=csv2
-                    #F1=csv1
                     folder_ = f'{folder}/{iter}'
                     folder1_ = f'{folder1}/{iter}'
                     os.makedirs(f'{folder1_}', exist_ok=True)

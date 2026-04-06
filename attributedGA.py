@@ -67,23 +67,11 @@ for k in range(0,len(foldernames)):
                 F1 = np.loadtxt(f'./Data/data/{foldernames[k]}/{foldernames[k]}_s_feat.txt', dtype=float)  # shape: (n2, k)
                 file_real_spectrum = open(f'{folder1}/real_Tspectrum{tuns[ptun]}.txt', 'w')
                 file_A_spectrum = open(f'{folder1}/A_Tspectrum{tuns[ptun]}.txt', 'w')
-                F2=F2
-                F1=F1
-                if (foldernames[k]=="douban"):
-                    csv2 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr1.csv", header=None).iloc[:, 1:].to_numpy()
-                    csv1 = pd.read_csv(f"./Data/Full-dataset/attribute/{foldernames[k]}attr2.csv", header=None).iloc[:, 1:].to_numpy()
                     #two versions exists of douban attributes
                     #we chose the one which is harder
                 for iter in range(iters):
-                    if (foldernames[k]=="douban"):
-                        F2=csv2
-                        F1=csv1
                     #you have to do that because the features have ID making them 
                     #giving ground truth information
-                    if (foldernames[k]=="acm_dblp"):
-                        data = np.load(f'JOENA/datasets/ACM-DBLP_0.2.npz')
-                        F2=data['x2']
-                        F1=data['x1']
 
                     folder_ = f'{folder}/{iter}'
                     folder1_ = f'{folder1}/{iter}'

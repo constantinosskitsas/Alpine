@@ -44,15 +44,7 @@ def load_data_from_txt(dataset_dir, p, use_attr=True,Perm=None):
         x1 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_t_feat.txt', dtype=np.float32)  # shape: (n1, k)
         x2 = np.loadtxt(f'./Data/data/{dataset_dir}/{dataset_dir}_s_feat.txt', dtype=np.float32)  # shape: (n2, k)
     else:
-        x1, x2 = None, None
-    if (dataset_dir=="douban"):
-        x1 = pd.read_csv(f"./Data/Full-dataset/attribute/{dataset_dir}attr1.csv", header=None).iloc[:, 1:].to_numpy()
-        x2 = pd.read_csv(f"./Data/Full-dataset/attribute/{dataset_dir}attr2.csv", header=None).iloc[:, 1:].to_numpy()
-    if (dataset_dir=="acm_dblp"):
-        data = np.load(f'JOENA/datasets/ACM-DBLP_0.2.npz')
-        x1=data['x2']
-        x2=data['x1']
-    
+        x1, x2 = None, None    
     print(f"✅ Loaded dataset from {dataset_dir} (p={p:.1f})")
     return edge_index1, edge_index2, x1, x2
 def JOENA(dataset,ratio,use_attr,anchor_links,Perm):
